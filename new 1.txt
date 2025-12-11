@@ -1,0 +1,1 @@
+mongodb+srv://chipiromarlo33_db_user:9zhZjqKg7CsGCJST@turningred.rwvw9vg.mongodb.net/?appName=turningRed 
