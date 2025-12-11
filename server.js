@@ -11,7 +11,7 @@ const JWT_SECRET = 'm1a2r3l4o5; // Change this to a secure, long, random key!
 
 // Middleware setup
 const allowedOrigins = [
-    'https://loquacious-starship-38a2a5.netlify.app/',
+    'https://effulgent-ganache-433653.netlify.app',
     'http://localhost:8888', // Add for local testing with netlify dev
     'http://localhost:3000', // Add if you still want to test on the server's port
 ];

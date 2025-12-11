@@ -1,1 +1,4 @@
-mongodb+srv://chipiromarlo33_db_user:9zhZjqKg7CsGCJST@turningred.rwvw9vg.mongodb.net/?appName=turningRed 
+mongodb+srv://chipiromarlo33_db_user:9zhZjqKg7CsGCJST@turningred.rwvw9vg.mongodb.net/?appName=turningRed
+74.220.48.0/24
+74.220.56.0/24
+https://cbt-marlo.onrender.com
