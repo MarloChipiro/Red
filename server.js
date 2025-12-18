@@ -18,9 +18,9 @@ app.use(bodyParser.json());
 // =======================================================
 // DATABASE CONNECTION
 // =======================================================
-const DB_URL = process.env.ATLAS_URL;
+const dbURI = process.env.ATLAS_URL;
 
-if (!DB_URL) {
+if (!dbURI) {
     console.error("FATAL ERROR: ATLAS_URL environment variable is not set. Check your .env file.");
     process.exit(1); // Exit if the connection string is missing
 }
@@ -38,7 +38,8 @@ const userSchema = new mongoose.Schema({
 const User = mongoose.model('User', userSchema);
 
    const activitySchema = new mongoose.Schema({
-    time: String,
+    date: String,
+	time: String,
     lat: Number,       // Location Latitude
     lon: Number,       // Location Longitude
     count: Number,     // Consumer Count
@@ -127,7 +128,7 @@ function convertToCsv(data) {
 
     // Define headers for the flattened data structure
     const headers = [
-        'Activity ID', 'Time', 'Latitude', 'Longitude', 'Consumer Count', 'Age Group', 
+        'Activity ID', 'Date','Time', 'Latitude', 'Longitude', 'Consumer Count', 'Age Group', 
         'Behavior Type', 'Item Name', 'Item Category'
     ];
     const csvRows = [];
@@ -139,6 +140,7 @@ function convertToCsv(data) {
         // Access the fields created in the /api/activity/csv endpoint's flattening logic
         const csvRow = [
             row._id ? row._id.toString() : 'N/A',
+			row.date || 'N/A',
             row.time || 'N/A',
             row.lat || 'N/A',
             row.lon || 'N/A',
@@ -325,6 +327,7 @@ app.get('/api/activity/csv', authenticateToken, async (req, res) => {
             activity.interactions.forEach(interaction => {
                 flattenedData.push({
                     _id: activity._id,
+					date: activity.date || 'N/A',
                     time: activity.time,
                     lat: activity.lat,
                     lon: activity.lon,

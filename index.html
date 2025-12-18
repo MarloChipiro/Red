@@ -104,6 +104,28 @@
             <p id="authMessage" class="mt-4 text-center text-sm font-medium"></p>
         </div>
     </div>
+	
+	<div class="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm mb-6 border border-gray-100 dark:border-gray-700">
+        <div class="flex flex-wrap items-center justify-between gap-4">
+            <h2 class="text-lg font-bold text-gray-800 dark:text-white">Filter Dashboard</h2>
+            <div class="flex items-center space-x-3">
+                <div>
+                    <label class="block text-xs font-medium text-gray-500 uppercase">Start Date</label>
+                    <input type="date" id="filterStartDate" class="p-2 text-sm border rounded-md dark:bg-gray-700 dark:text-white">
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-gray-500 uppercase">End Date</label>
+                    <input type="date" id="filterEndDate" class="p-2 text-sm border rounded-md dark:bg-gray-700 dark:text-white">
+                </div>
+                <button onclick="applyDateFilter()" class="mt-4 bg-primary hover:bg-primary-dark text-white px-4 py-2 rounded-md text-sm font-bold transition">
+                    Apply Filter
+                </button>
+                <button onclick="resetDateFilter()" class="mt-4 text-gray-500 hover:text-gray-700 text-sm font-medium">
+                    Reset
+                </button>
+            </div>
+        </div>
+    </div>
 
     <!-- Main Dashboard Content -->
     <div id="dashboard" class="container mx-auto p-4 hidden">
@@ -147,7 +169,7 @@
                 <div class="flex items-center justify-between">
                     <div>
                         <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Conversion Rate</p>
-                        <p id="conversionRate" class="text-3xl font-bold mt-1 text-gray-900 dark:text-gray-100">7.2%</p>
+                        <p id="conversionRate" class="text-3xl font-bold mt-1 text-gray-900 dark:text-gray-100">0%</p>
                     </div>
                     <i class="fas fa-chart-line text-primary text-3xl opacity-75"></i>
                 </div>
@@ -230,6 +252,11 @@
             <!-- Geolocation Status Message -->
             <p id="geolocationStatus" class="text-sm mb-4 text-center"></p>
             <form id="activityForm" class="space-y-4">
+			    <div>
+                    <label for="activityDate" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Date</label>
+                    <input type="date" id="activityDate" name="activityDate" readonly 
+                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm bg-gray-100 dark:bg-gray-600 cursor-not-allowed focus:ring-0">
+                </div>
                 <div>
                     <label for="activityTime" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Time of Day</label>
                     <select id="activityTime" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-dark focus:ring focus:ring-primary-dark focus:ring-opacity-50 dark:bg-gray-700 dark:border-gray-600">
@@ -252,7 +279,7 @@
                 <div>
                     <label for="activityLat" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Location Latitude</label>
                     <input type="number" step="any" id="activityLat" name="activityLat" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-dark focus:ring focus:ring-primary-dark focus:ring-opacity-50 dark:bg-gray-700 dark:border-gray-600">
-                </div>
+                </div>			
                 <div>
                     <label for="activityLon" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Location Longitude</label>
                     <input type="number" step="any" id="activityLon" name="activityLon" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-dark focus:ring focus:ring-primary-dark focus:ring-opacity-50 dark:bg-gray-700 dark:border-gray-600">
@@ -272,12 +299,21 @@
 	
     <script>
         // Store charts, map, and heatmap layers instance globally for updates
-        let hourlyActivityChart, demographicsChart, map;
+        let allActivityData = []; // <--- Master copy for filtering
+		let hourlyActivityChart, demographicsChart, map;
         let heatLayers = {};
         let clusterLayers = {};
         let currentMapMode = 'heatmap'; // 'heatmap' or 'cluster'
         const categoryColors = ['#5D5CDE', '#34D399', '#FBBF24', '#F87171', '#60A5FA', '#8B5CF6'];
 
+    // CRITICAL NEW GLOBAL VARIABLE: Stores the data currently displayed (cleared on Refresh)
+        let localActivityData = {
+            activity: [],
+            demographics: [],
+            dashboardMetrics: { totalConsumers: 0, activeLocations: 0, conversionRate: '0%' },
+            targetKeyDemographics: { targetAgeGroup: 'N/A', keyInteraction: 'N/A', keyCategory: 'N/A' }
+        };
+		
         // ---- API UTILITIES ----
         async function fetchWithAuth(url, options = {}) {
             const token = localStorage.getItem('token');
@@ -307,6 +343,11 @@
 			document.getElementById('interaction-inputs').innerHTML = ''; // Clear previous fields
             addInteractionField(); // Add the first interaction field
             getGeolocation();
+			
+			// Auto-generate current date (YYYY-MM-DD)
+			const today = new Date().toISOString().split('T')[0];
+			document.getElementById('activityDate').value = today;
+			
          // Attempt to get current geolocation when the modal is shown
             getGeolocation();
         }
@@ -314,40 +355,61 @@
 
         function addInteractionField() {
             const inputsContainer = document.getElementById('interaction-inputs');
+            const groupId = Date.now(); // Unique ID for this group
             const newField = document.createElement('div');
-            newField.className = 'p-3 bg-gray-50 dark:bg-gray-700 rounded-md border border-gray-200 dark:border-gray-600';
+            newField.className = 'p-3 bg-gray-50 dark:bg-gray-700 rounded-md border border-gray-200 dark:border-gray-600 mb-4 interaction-group';
+    
             newField.innerHTML = `
-                <div class="flex justify-end">
-                    <button type="button" class="text-red-500 hover:text-red-700 remove-interaction-field"><i class="fas fa-times-circle"></i></button>
-                </div>
-                <div class="space-y-2">
+                <div class="flex justify-between items-center mb-2">
+                    <span class="text-xs font-bold uppercase text-gray-500">Interaction Group</span>
+                    <button type="button" class="text-red-500 hover:text-red-700 remove-interaction-field"><i class="fas fa-trash"></i></button>
+                    </div>
+                    <div class="grid grid-cols-2 gap-2 mb-3">
                     <div>
                         <label class="block text-xs font-medium text-gray-700 dark:text-gray-300">Behavior Type</label>
-                        <select name="interactionBehaviour" required class="w-full p-2 text-sm border border-gray-300 rounded-md dark:bg-gray-800 dark:border-gray-600 dark:text-white">
+                        <select name="groupBehaviour" required class="w-full p-2 text-sm border border-gray-300 rounded-md dark:bg-gray-800 dark:border-gray-600 dark:text-white">
                             <option value="Purchasing">Purchasing</option>
                             <option value="Browsing">Browsing</option>
                             <option value="Returning">Returning</option>
                         </select>
                     </div>
                     <div>
-                        <label class="block text-xs font-medium text-gray-700 dark:text-gray-300">Item Name</label>
-                        <input type="text" name="interactionItem" placeholder="e.g., Tacos, Laptop, T-shirt" required class="mt-1 block w-full text-sm rounded-md border-gray-300 shadow-sm dark:bg-gray-800 dark:border-gray-600">
-                    </div>
-                    <div>
                         <label class="block text-xs font-medium text-gray-700 dark:text-gray-300">Item Category</label>
-                        <select name="interactionCategory" required class="w-full p-2 text-sm border border-gray-300 rounded-md dark:bg-gray-800 dark:border-gray-600 dark:text-white">
+                        <select name="groupCategory" required class="w-full p-2 text-sm border border-gray-300 rounded-md dark:bg-gray-800 dark:border-gray-600 dark:text-white">
+                            <option value="Groceries">Groceries</option>
                             <option value="Electronics">Electronics</option>
                             <option value="Apparel">Apparel</option>
-                            <option value="Groceries">Groceries</option>
                             <option value="Home Goods">Home Goods</option>
                             <option value="Other">Other</option>
                         </select>
                     </div>
                 </div>
+                <div class="item-list space-y-2" id="items-${groupId}">
+                    <label class="block text-xs font-medium text-gray-700 dark:text-gray-300">Items</label>
+                    <div class="flex space-x-2">
+                        <input type="text" name="itemName" placeholder="Item name..." required class="flex-1 p-2 text-sm rounded-md border border-gray-300 dark:bg-gray-800 dark:border-gray-600">
+                    </div>
+                </div>
+                <button type="button" onclick="addItemToGroup('${groupId}')" class="mt-2 text-xs text-blue-500 font-semibold hover:underline">
+                    + Add another item to this category
+                </button>
             `;
             inputsContainer.appendChild(newField);
             newField.querySelector('.remove-interaction-field').addEventListener('click', () => newField.remove());
         }
+
+        // Helper to add a new item row within a specific group
+        function addItemToGroup(groupId) {
+            const container = document.getElementById(`items-${groupId}`);
+            const newItemDiv = document.createElement('div');
+            newItemDiv.className = 'flex space-x-2';
+            newItemDiv.innerHTML = `
+                <input type="text" name="itemName" placeholder="Item name..." required class="flex-1 p-2 text-sm rounded-md border border-gray-300 dark:bg-gray-800 dark:border-gray-600">
+                <button type="button" onclick="this.parentElement.remove()" class="text-gray-400 hover:text-red-500"><i class="fas fa-times"></i></button>
+            `;
+            container.appendChild(newItemDiv);
+        }
+		
         // Custom message box to replace alert()
         function showMessage(message, isError = false) {
             const messageBox = document.createElement('div');
@@ -689,11 +751,11 @@
             // 1. Reset Metrics to 0/N/A
             document.getElementById('totalConsumers').textContent = '0';
             document.getElementById('activeLocations').textContent = '0';
-            document.getElementById('conversionRate').textContent = 'N/A';
+            document.getElementById('conversionRate').textContent = '0';
     
             // 2. Robustly Clear Charts by replacing the entire data object
             if (hourlyActivityChart) {
-			    // Hourly Chart Reset
+			                // Hourly Chart Reset
                 hourlyActivityChart.data = {
                     labels: [],
                     datasets: [{ 
@@ -703,8 +765,8 @@
                         tension: 0.1 
                     }]				
             };
-			hourlyActivityChart.update();
-		}
+			            hourlyActivityChart.update();
+		        }
 
             if (demographicsChart) {
                 // Demographics Chart Reset (Ensuring correct type and colors are maintained)
@@ -724,40 +786,148 @@
 			
             // 3. Clear Recommendations
             document.getElementById('peakHours').textContent = 'N/A';
-            document.getElementById('targetDemographicsOutput').innerHTML = '<p class="text-sm text-gray-500">Data cleared. Refreshing...</p>';
+            document.getElementById('targetDemographicsOutput').innerHTML = '<p class="text-sm text-gray-500">Data cleared. Awaiting new activity entry!</p>';
 
             // 4. Clear Map layers and reset legend
             clearMapLayers(); // This existing function removes layers and clears stored data
             const legend = document.getElementById('mapLegend');
-            legend.innerHTML = '<h4 class="font-bold mb-2">Item Categories</h4><p class="text-xs text-gray-500 dark:text-gray-400">Data cleared. Refreshing...</p>';
+            legend.innerHTML = '<h4 class="font-bold mb-2">Item Categories</h4><p class="text-xs text-gray-500 dark:text-gray-400">Dashboard data has been cleared.</p>';
+        
+            // CRITICAL STEP: When refreshing, reset the local data buffer to an empty set
+            localActivityData.activity = [];
+            localActivityData.demographics = [];
+            localActivityData.dashboardMetrics = { totalConsumers: 0, activeLocations: 0, conversionRate: '0%' };
+            localActivityData.targetKeyDemographics = { targetAgeGroup: 'N/A', keyInteraction: 'N/A', keyCategory: 'N/A' };
+        }		
+		
+		function resetDashboardState() {
+		    // 1. Close and reset the Add Activity Modal form
+			document.getElementById('addActivityModal').classList.add('hidden');
+			document.getElementById('activityForm').reset();
+			
+			// 2. Clear dynamic interaction fields and re-add one for a clean slate
+			const interactionInputs = document.getElementById('interaction-inputs');
+			if (interactionInputs) {
+			    interactionInputs.innerHTML = '';
+				addInteractionField();
+			}
+		}	
+		
+        // NEW FUNCTION: Handles the actual display update from the local buffer
+        function updateDashboardDisplay(data) {
+            document.getElementById('totalConsumers').textContent = data.dashboardMetrics.totalConsumers;
+            document.getElementById('activeLocations').textContent = data.dashboardMetrics.activeLocations;
+            document.getElementById('conversionRate').textContent = data.dashboardMetrics.conversionRate;
+
+            updateHourlyChart(data.activity);
+            updateDemographicsChart(data.demographics);
+            updateRecommendations(data.activity);
+            updateMap(data.activity);
+            updateTargetDemographics(data.targetKeyDemographics);			
         }
+
+// ---- DATA AND METRICS CALCULATOR ----
+        
+        // NEW FUNCTION: Calculates all metrics, demographics, and recommendations client-side
+        // This ensures the dashboard reflects ONLY the data present in the provided activity array.
+        function calculateClientSideStats(activityData) {
+            let totalConsumers = 0;
+            const locations = new Set();
+            const ageCounts = {};
+            let totalInteractions = 0;
+            let purchaseCount = 0;
+            let interactionCounts = {};
+            let categoryCounts = {};
+
+            // Pass 1: Gather raw numbers for metrics and demographics
+            activityData.forEach(activity => {
+                totalConsumers += activity.count;
+                locations.add(`${activity.lat},${activity.lon}`);
+
+                // Demographics
+                const ageGroup = activity.age; // Assuming 'age' is a string like '25-34'
+                ageCounts[ageGroup] = (ageCounts[ageGroup] || 0) + activity.count;
+
+                // Interactions for Conversion Rate/Key Demographics
+                activity.interactions.forEach(interaction => {
+                    totalInteractions++;
+                    if (interaction.type === 'Purchasing') {
+                        purchaseCount++;
+                    }
+                    interactionCounts[interaction.type] = (interactionCounts[interaction.type] || 0) + 1;
+                    categoryCounts[interaction.category] = (categoryCounts[interaction.category] || 0) + 1;
+                });
+            });
+
+            // Calculate Metrics
+            const activeLocations = locations.size;
+            const conversionRate = totalInteractions > 0 
+                ? ((purchaseCount / totalInteractions) * 100).toFixed(1) + '%'
+                : '0%';
+            
+            // Calculate Demographics
+            const demographics = Object.keys(ageCounts).map(age_group => ({
+                age_group,
+                count: ageCounts[age_group]
+            })).sort((a, b) => b.count - a.count);
+
+            // Calculate Recommendations (Target Demographic/Interaction)
+            let targetAgeGroup = demographics.length > 0 ? demographics[0].age_group : 'N/A';
+            let keyInteraction = Object.keys(interactionCounts).sort((a, b) => interactionCounts[b] - interactionCounts[a])[0] || 'N/A';
+            let keyCategory = Object.keys(categoryCounts).sort((a, b) => categoryCounts[b] - categoryCounts[a])[0] || 'N/A';
+
+            return {
+                dashboardMetrics: { totalConsumers, activeLocations, conversionRate },
+                demographics: demographics,
+                targetKeyDemographics: { targetAgeGroup, keyInteraction, keyCategory }
+            };
+        }
+		
+		function applyDateFilter() {
+            const start = document.getElementById('filterStartDate').value;
+            const end = document.getElementById('filterEndDate').value;
+
+            if (!start || !end) {
+                showMessage("Please select both a start and end date.", true);
+                return;
+            }
+
+            // 1. Filter the Master Copy based on the date string (YYYY-MM-DD)
+            const filteredActivities = allActivityData.filter(act => {
+                return act.date >= start && act.date <= end;
+            });
+
+            // 2. Re-calculate all stats (Metrics, Charts, Demographics) for this subset
+            const filteredStats = calculateClientSideStats(filteredActivities);
+    
+            // 3. Push to UI
+            updateDashboardDisplay({
+                activity: filteredActivities,
+                ...filteredStats
+            });
+        }
+		
+		function resetDateFilter() {
+		    document.getElementById('filterStartDate').value = '';
+			document.getElementById('filterEndDate').value = '';
+			
+			// Return to the original localActivityData (the full set)
+			updateDashboardDisplay(localActivityData);
+		}
+
         // ---- DATA AND API HANDLERS ----
         async function fetchDashboardData() {
             try {
                 const response = await fetchWithAuth('http://localhost:3000/api/dashboard');
                 let data = await response.json();
-
-                // Fallback data for testing if backend is not providing location data
-                if (data.activity.length === 0) {
-                    data.activity = [
-                        { time: '09:30', lat: 34.0522, lon: -118.2437, category: 'Food', count: 15, age: '25-34', behaviour: 'Browse', items: 'Tacos, Burrito' },
-                        { time: '12:00', lat: 34.0532, lon: -118.2450, category: 'Retail', count: 20, age: '18-24', behaviour: 'Purchase', items: 'Shirt, Jeans' },
-                        { time: '13:00', lat: 34.0550, lon: -118.2420, category: 'Food', count: 10, age: '35-44', behaviour: 'Purchase', items: 'Coffee, Pastry' },
-                        { time: '17:45', lat: 34.0515, lon: -118.2460, category: 'Entertainment', count: 5, age: '18-24', behaviour: 'Browse', items: 'Tickets' },
-                        { time: '18:30', lat: 34.0528, lon: -118.2445, category: 'Food', count: 18, age: '25-34', behaviour: 'Purchase', items: 'Pizza, Soda' },
-                        { time: '20:00', lat: 34.0540, lon: -118.2410, category: 'Retail', count: 12, age: '45-54', behaviour: 'Browse', items: 'Shoes' },
-                    ];
-                }
-
-                document.getElementById('totalConsumers').textContent = data.dashboardMetrics.totalConsumers;
-                document.getElementById('activeLocations').textContent = data.dashboardMetrics.activeLocations;
-                document.getElementById('conversionRate').textContent = data.dashboardMetrics.conversionRate;
-
-                updateHourlyChart(data.activity);
-                updateDemographicsChart(data.demographics);
-                updateRecommendations(data.activity);
-                updateMap(data.activity);
-				updateTargetDemographics(data.targetKeyDemographics);
+                
+				allActivityData = data.activity; // Store the master copy here
+                // Store the full response data locally (used during login/initial load)
+                localActivityData = data; 
+                
+                // Now, update the dashboard using this new local data
+                updateDashboardDisplay(localActivityData);
+				
             } catch (error) {
                 console.error('Failed to fetch dashboard data:', error);
             }
@@ -769,62 +939,66 @@
             const lat = parseFloat(document.getElementById('activityLat').value);
             const lon = parseFloat(document.getElementById('activityLon').value);
     
-            const interactionRows = document.querySelectorAll('#interaction-inputs > div');
+            const groups = document.querySelectorAll('.interaction-group');
             const interactions = [];
 
-        // Collect all dynamic interactions
-        interactionRows.forEach(row => {
-                const behaviour = row.querySelector('[name="interactionBehaviour"]').value;
-                const item = row.querySelector('[name="interactionItem"]').value;
-                const category = row.querySelector('[name="interactionCategory"]').value;
+            groups.forEach(group => {
+                const behaviour = group.querySelector('[name="groupBehaviour"]').value;
+                const category = group.querySelector('[name="groupCategory"]').value;
+                const itemInputs = group.querySelectorAll('[name="itemName"]');
 
-                if (behaviour && item && category) {
-                    interactions.push({ type: behaviour, item, category });
-                } 
+                itemInputs.forEach(input => {
+				    const itemName = input.value.trim();
+                    if (itemName !== "") {
+                        // Each item is pushed as an individual interaction object
+                        interactions.push({ 
+                            type: behaviour, 
+                            item: itemName, 
+                            category: category 
+                        });
+                    }
+                });
             });
 
             if (interactions.length === 0) {
-                showMessage("Please add at least one interaction (Browsing, Purchasing, or Returning).", true);
+                showMessage("Please add at least one item.", true);
                 return;
             }
 
             const newActivity = {
+			    date: document.getElementById('activityDate').value,
                 time: document.getElementById('activityTime').value,
                 lat: lat,
                 lon: lon,
-                count: parseInt(document.getElementById('activityCount').value), // Still useful for consumer count at the location
+                count: parseInt(document.getElementById('activityCount').value),
                 age: document.getElementById('activityAge').value,           
-                interactions: interactions // THE NEW ARRAY
+                interactions: interactions 
             };
-    
-            // The previous fields 'activityCategory', 'activityBehaviour', 'activityReturned', 'activityItems' 
-            // must be removed from the JSON payload if they are not in the form anymore, which is what 
-            // this new structure does by using the 'interactions' array instead.
 
             try {
                 const response = await fetchWithAuth('http://localhost:3000/api/activity', {
-                method: 'POST',
-                body: JSON.stringify(newActivity)
+                    method: 'POST',
+                    body: JSON.stringify(newActivity)
                 });
-                const result = await response.json();
-                console.log(result.message);
-                await fetchDashboardData();
-                closeActivityModal();
         
-                // Reset the form and the dynamic interactions container
-                form.reset(); 
-                document.getElementById('interaction-inputs').innerHTML = '';
-                addInteractionField(); // Add one blank field for convenience
- 
-                if (!isNaN(lat) && !isNaN(lon)) {
-                    map.flyTo([lat, lon], 15);
+                if (response.ok) {
+                    // Update local state and dashboard
+                    localActivityData.activity.push(newActivity); 
+                    const updatedStats = calculateClientSideStats(localActivityData.activity);
+                    Object.assign(localActivityData, updatedStats);
+                    updateDashboardDisplay(localActivityData);
+            
+                    // UI Cleanup
+                    closeActivityModal();
+                    form.reset();
+                    document.getElementById('interaction-inputs').innerHTML = '';
+                    addInteractionField(); 
+                    if (!isNaN(lat) && !isNaN(lon)) map.flyTo([lat, lon], 15);
                 }
             } catch (error) {
                 console.error('Error adding activity:', error);
-                showMessage('Failed to add activity data. See console for details.', true);
             } 
         }
-
         // ---- INITIALIZATION AND EVENT LISTENERS ----
         document.addEventListener('DOMContentLoaded', function() {
             initCharts();
@@ -900,14 +1074,15 @@
 
             document.getElementById('addActivityBtn').addEventListener('click', showActivityModal);
             document.getElementById('activityForm').addEventListener('submit', submitActivityData);
+			
 			document.getElementById('refreshBtn').addEventListener('click', () => {
-                clearDashboardDisplay(); // Clear the old data immediately for user feedback
-                // Use setTimeout to ensure the browser has time to render the cleared state
-                // before the new data fetch begins, preventing old data from "flashing."
-				setTimeout(() => {
-				    fetchDashboardData();
-				}, 50);	
-                });
+			    // 1. Ensure all input forms are closed and reset
+				    resetDashboardState();
+				
+                // 2. Clear Dashboard Display (Visual reset to 0s and N/A)
+				        clearDashboardDisplay();
+				                            	
+            });
             document.getElementById('toggleMapViewBtn').addEventListener('click', toggleMapView);
             document.getElementById('addInteractionField').addEventListener('click', addInteractionField);
 			
