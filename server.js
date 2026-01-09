@@ -8,7 +8,7 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 
 const app = express();
-const PORT = 3000;
+const PORT =process.env.PORT || 3000;
 const JWT_SECRET = 'your-secret-key'; // Change this to a secure, long, random key!
 
 // Middleware setup
@@ -383,6 +383,6 @@ app.get('/api/activity/csv', authenticateToken, async (req, res) => {
 });
 // Start the server
 app.listen(PORT, () => {
-    console.log(`Server is running on http://localhost:${PORT}`);
+    console.log(`Server is running on port ${PORT}`);
     console.log(`MongoDB connection string is loaded from .env`);
 });
