@@ -1,0 +1,89 @@
+ <style>
+        .chart-container {
+            position: relative;
+            height: 300px;
+            width: 100%;
+        }
+        .map-container {
+            position: relative;
+            height: 400px;
+            width: 100%;
+            border-radius: 0.5rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            overflow: hidden;
+            border: 2px solid #e5e7eb;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        #tooltip {
+            position: absolute;
+            background-color: #333;
+            color: white;
+            padding: 5px;
+            border-radius: 4px;
+            pointer-events: none;
+            display: none;
+            z-index: 1000;
+        }
+        .leaflet-heatmap-layer {
+          opacity: 0.8;
+        }
+        .map-legend {
+            position: absolute;
+            bottom: 15px;
+            left: 15px;
+            z-index: 1000;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 12px;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            font-size: 13px;
+            /* Scrollable properties */
+            max-height: 200px; /* Limits height to roughly 5-6 items */
+            overflow-y: auto;  /* Adds vertical scrollbar when content exceeds max-height */
+            width: 160px;      /* Ensures consistent width */
+            border: 1px solid #e5e7eb;
+        }
+
+        /* Optional: Style the scrollbar for a cleaner look in Dark Mode */
+        .map-legend::-webkit-scrollbar {
+            width: 6px;
+        }
+        .map-legend::-webkit-scrollbar-thumb {
+            background-color: rgba(156, 163, 175, 0.5);
+            border-radius: 10px;
+        }
+        .map-legend-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 5px;
+		}	
+		#slideshow-bg {
+            filter: brightness(0.9); /* 0.9 is much closer to the original photo clarity */
+
+        /* Optional: add a subtle zoom effect */
+        .bg-zoom {
+            transform: scale(1.05);	
+	    #slideshow-bg {
+            background-color: #1a202c; /* A dark gray so it doesn't flash bright white */
+            background-size: cover;
+            background-position: center;
+			transition: background-image 1s ease-in-out; /* Smooth fade between images */
+        }
+		#totalConsumers, #activeLocations, #conversionRate {
+            text-shadow: 0px 2px 4px rgba(0, 0, 0, 0.2); /* Adds a subtle shadow behind the numbers */
+            letter-spacing: -1px;
+        }
+		header h1, header button {
+            text-shadow: 0px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        /* Adds a subtle glow effect to buttons on hover */
+        header button:hover {
+            box-shadow: 0 0 15px rgba(255, 255, 255, 0.2);
+        }
+    </style>
