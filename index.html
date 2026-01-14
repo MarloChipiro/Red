@@ -430,6 +430,8 @@
                 setInterval(updateBackground, 5000); // Swap images every 5 seconds
         });
 		
+		const API_URL = window.location.origin;
+		
         // ---- API UTILITIES ----
         async function fetchWithAuth(url, options = {}) {
             const token = localStorage.getItem('token');
@@ -1121,7 +1123,7 @@
         // ---- DATA AND API HANDLERS ----
         async function fetchDashboardData() {
             try {
-                const response = await fetchWithAuth('http://localhost:3000/api/dashboard');
+                const response = await fetchWithAuth('${API_URL}/api/dashboard');
                 let data = await response.json();
                 
 				allActivityData = data.activity; // Store the master copy here
@@ -1180,7 +1182,7 @@
             };
 
             try {
-                const response = await fetchWithAuth('http://localhost:3000/api/activity', {
+                const response = await fetchWithAuth('${API_URL}/api/activity', {
                     method: 'POST',
                     body: JSON.stringify(newActivity)
                 });
@@ -1228,7 +1230,7 @@
                 const authMessage = document.getElementById('authMessage');
 
                 try {
-                    const response = await fetch('http://localhost:3000/api/login', {
+                    const response = await fetch('${API_URL}/api/login', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ username, password })
@@ -1260,7 +1262,7 @@
                 const authMessage = document.getElementById('authMessage');
 
                 try {
-                    const response = await fetch('http://localhost:3000/api/register', {
+                    const response = await fetch('${API_URL}/api/register', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ username, password })
@@ -1316,7 +1318,7 @@
                 const endDate = document.getElementById('filterEndDate').value;
 
                 // 2. Build the URL with query parameters if filters are set
-                let url = 'http://localhost:3000/api/activity/csv';
+                let url = '${API_URL}/api/activity/csv';
                 const params = new URLSearchParams();
                 if (startDate) params.append('startDate', startDate);
                 if (endDate) params.append('endDate', endDate);

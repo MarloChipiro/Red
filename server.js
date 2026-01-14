@@ -8,12 +8,14 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 
 const app = express();
-const PORT =process.env.PORT || 3000;
+const PORT = process.env.PORT || 10000;
 const JWT_SECRET = 'your-secret-key'; // Change this to a secure, long, random key!
 
 // Middleware setup
 app.use(cors());
 app.use(bodyParser.json());
+
+app.use(express.static(__dirname));
 
 // =======================================================
 // DATABASE CONNECTION
