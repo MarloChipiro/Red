@@ -384,7 +384,7 @@ app.get('/api/activity/csv', authenticateToken, async (req, res) => {
         res.status(500).send("Internal server error during CSV export.");
     }
 });
-app.get('*', (req, res) => {
+app.get('(.*)', (req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));		
 });
 // Start the server
