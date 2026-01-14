@@ -17,6 +17,8 @@
 .externalNativeBuild
 .cxx
 local.properties
+node_modules/
+.env
 
 # =======================================================
 # NEW: NODE.JS and SECURITY IGNORES (ADD THESE)
