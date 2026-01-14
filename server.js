@@ -383,12 +383,12 @@ app.get('/api/activity/csv', authenticateToken, async (req, res) => {
         console.error('Failed to export CSV data:', error);
         res.status(500).send("Internal server error during CSV export.");
     }
+
+app.get('*', (req, res) => {
+    res.sendFile(path.join(__dirname, 'index.html'));		
 });
 // Start the server
 app.listen(PORT, '0.0.0.0', () => {
     console.log(`Server is running on port ${PORT}`);
-    console.log(`MongoDB connection string is loaded from .env`);
-	
-app.get('*', (req, res) => {
-    res.sendFile(path.join(__dirname, 'index.html'));	
+    console.log(`MongoDB connection string is loaded from .env`);	
 });
