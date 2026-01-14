@@ -384,9 +384,11 @@ app.get('/api/activity/csv', authenticateToken, async (req, res) => {
         res.status(500).send("Internal server error during CSV export.");
     }
 });
-app.get('/:any(.*)', (req, res) => {
-    res.sendFile(path.join(__dirname, 'index.html'));		
+
+app.use((req, res) => {
+    res.sendFile(path.join(__dirname, 'index.html'));
 });
+
 // Start the server
 app.listen(PORT, '0.0.0.0', () => {
     console.log(`Server is running on port ${PORT}`);
