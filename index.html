@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -66,23 +65,63 @@
         }
         .map-legend {
             position: absolute;
-            bottom: 10px;
-            left: 10px;
+            bottom: 15px;
+            left: 15px;
             z-index: 1000;
             background: rgba(255, 255, 255, 0.9);
-            padding: 10px;
+            padding: 12px;
             border-radius: 8px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-            font-size: 14px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            font-size: 13px;
+            /* Scrollable properties */
+            max-height: 200px; /* Limits height to roughly 5-6 items */
+            overflow-y: auto;  /* Adds vertical scrollbar when content exceeds max-height */
+            width: 160px;      /* Ensures consistent width */
+            border: 1px solid #e5e7eb;
+        }
+
+        /* Optional: Style the scrollbar for a cleaner look in Dark Mode */
+        .map-legend::-webkit-scrollbar {
+            width: 6px;
+        }
+        .map-legend::-webkit-scrollbar-thumb {
+            background-color: rgba(156, 163, 175, 0.5);
+            border-radius: 10px;
         }
         .map-legend-item {
             display: flex;
             align-items: center;
             margin-bottom: 5px;
+		}	
+		#slideshow-bg {
+            filter: brightness(0.9); /* 0.9 is much closer to the original photo clarity */
+
+        /* Optional: add a subtle zoom effect */
+        .bg-zoom {
+            transform: scale(1.05);	
+	    #slideshow-bg {
+            background-color: #1a202c; /* A dark gray so it doesn't flash bright white */
+            background-size: cover;
+            background-position: center;
+			transition: background-image 1s ease-in-out; /* Smooth fade between images */
+        }
+		#totalConsumers, #activeLocations, #conversionRate {
+            text-shadow: 0px 2px 4px rgba(0, 0, 0, 0.2); /* Adds a subtle shadow behind the numbers */
+            letter-spacing: -1px;
+        }
+		header h1, header button {
+            text-shadow: 0px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        /* Adds a subtle glow effect to buttons on hover */
+        header button:hover {
+            box-shadow: 0 0 15px rgba(255, 255, 255, 0.2);
         }
     </style>
 </head>
-<body class="bg-gray-100 dark:bg-gray-900 font-sans leading-normal tracking-normal text-gray-800 dark:text-gray-200">
+<body class="bg-transparent font-sans leading-normal tracking-normal text-gray-800 dark:text-gray-200">
+    <div id="slideshow-bg" class="fixed inset-0 -z-20 bg-cover bg-center transition-all duration-1000 ease-in-out"></div>
+    <div class="fixed inset-0 -z-10 bg-white/40 dark:bg-gray-900/60"></div>
 
     <!-- Login/Register Modal -->
     <div id="authModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex items-center justify-center z-50">
@@ -130,49 +169,58 @@
 
     <!-- Main Dashboard Content -->
     <div id="dashboard" class="container mx-auto p-4 hidden">
-        <header class="flex flex-col sm:flex-row justify-between items-center py-4 mb-8 border-b-2 border-gray-200 dark:border-gray-700">
-            <h1 class="text-3xl font-extrabold text-primary mb-4 sm:mb-0">Consumer Dashboard</h1>
-            <div class="flex items-center space-x-4">
-                <button id="addActivityBtn" class="bg-primary text-white py-2 px-4 rounded-lg shadow hover:bg-primary-dark transition duration-300 text-sm">Add Activity Data</button> 
-				<button id="refreshBtn" class="bg-blue-500 text-white py-2 px-4 rounded-lg shadow hover:bg-blue-600 transition duration-300 text-sm">
-                    <i class="fas fa-sync-alt mr-1"></i> Refresh Dashboard
+        <header class="flex flex-col sm:flex-row justify-between items-center py-4 px-6 mb-8 bg-white/10 dark:bg-gray-900/40 backdrop-blur-md rounded-xl border border-white/20 shadow-lg">
+            <h1 class="text-3xl font-black text-white drop-shadow-md mb-4 sm:mb-0 tracking-tight">
+                Consumer <span class="text-yellow-400">Dashboard</span>
+            </h1>
+			
+			<div class="flex flex-wrap items-center justify-center gap-3">
+                <button id="addActivityBtn" class="bg-primary/80 hover:bg-primary text-white font-bold py-2 px-4 rounded-lg backdrop-blur-sm border border-white/20 shadow-md transition-all transform hover:scale-105 active:scale-95 text-sm flex items-center">
+                    <i class="fas fa-plus-circle mr-2"></i> Add Activity
                 </button>
-                <button id="logoutBtn" class="bg-red-500 text-white py-2 px-4 rounded-lg shadow hover:bg-red-600 transition duration-300 text-sm">Logout</button>
+				
+				<button id="refreshBtn" class="bg-blue-500/80 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg backdrop-blur-sm border border-white/20 shadow-md transition-all transform hover:scale-105 active:scale-95 text-sm flex items-center">
+                    <i class="fas fa-sync-alt mr-2"></i> Refresh
+                </button>
+
+                <button id="logoutBtn" class="bg-red-500/80 hover:bg-red-600 text-white font-bold py-2 px-4 rounded-lg backdrop-blur-sm border border-white/20 shadow-md transition-all transform hover:scale-105 active:scale-95 text-sm flex items-center">
+                    <i class="fas fa-sign-out-alt mr-2"></i> Logout
+                </button>
             </div>
         </header>
-
+	
         <!-- Main Metrics Section -->
         <section class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
             <!-- Total Consumers Card -->
-            <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md border border-gray-200 dark:border-gray-700">
+            <div class="bg-white/10 dark:bg-gray-900/20 backdrop-blur-md p-6 rounded-lg shadow-md border border-white/20">
                 <div class="flex items-center justify-between">
                     <div>
-                        <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Total Consumers</p>
-                        <p id="totalConsumers" class="text-3xl font-bold mt-1 text-gray-900 dark:text-gray-100">0</p>
+                        <p class="text-sm font-medium text-gray-700 dark:text-gray-300">Total Consumers</p>
+                        <p id="totalConsumers" class="text-4xl font-black mt-1 text-primary-dark dark:text-yellow-400 drop-shadow-md">0</p>
                     </div>
-                    <i class="fas fa-users text-primary text-3xl opacity-75"></i>
+                    <i class="fas fa-users text-primary text-3xl opacity-90"></i>
                 </div>
             </div>
 
             <!-- Active Locations Card -->
-            <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md border border-gray-200 dark:border-gray-700">
+            <div class="bg-white/10 dark:bg-gray-900/20 backdrop-blur-md p-6 rounded-lg shadow-md border border-white/20">
                 <div class="flex items-center justify-between">
                     <div>
-                        <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Active Locations</p>
-                        <p id="activeLocations" class="text-3xl font-bold mt-1 text-gray-900 dark:text-gray-100">0</p>
+                        <p class="text-sm font-medium text-gray-700 dark:text-gray-300">Active Locations</p>
+                        <p id="activeLocations" class="text-4xl font-black mt-1 text-primary-dark dark:text-yellow-400 drop-shadow-md">0</p>
                     </div>
-                    <i class="fas fa-map-marker-alt text-primary text-3xl opacity-75"></i>
+                    <i class="fas fa-map-marker-alt text-primary text-3xl opacity-90"></i>
                 </div>
             </div>
 
             <!-- Conversion Rate Card -->
-            <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md border border-gray-200 dark:border-gray-700">
-                <div class="flex items-center justify-between">
+            <div class="bg-white/10 dark:bg-gray-900/20 backdrop-blur-md p-6 rounded-lg shadow-md border border-white/20">
+                 <div class="flex items-center justify-between">
                     <div>
-                        <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Conversion Rate</p>
-                        <p id="conversionRate" class="text-3xl font-bold mt-1 text-gray-900 dark:text-gray-100">0%</p>
+                        <p class="text-sm font-medium text-gray-700 dark:text-gray-300">Conversion Rate</p>
+                        <p id="conversionRate" class="text-4xl font-black mt-1 text-primary-dark dark:text-yellow-400 drop-shadow-md">0%</p>
                     </div>
-                    <i class="fas fa-chart-line text-primary text-3xl opacity-75"></i>
+                    <i class="fas fa-chart-line text-primary text-3xl opacity-90"></i>
                 </div>
             </div>
         </section>
@@ -197,36 +245,44 @@
         </section>
 
         <!-- Recommendations and Overview Map Section -->
-        <section class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+        <section class="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-8 items-start">
             <!-- Recommendations Card -->
-            <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md border border-gray-200 dark:border-gray-700">
-                <h2 class="text-xl font-bold mb-4">Recommendations</h2>
+            <div class="lg:col-span-5 bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md border border-gray-200 dark:border-gray-700 h-full">
+                <h2 class="text-xl font-bold mb-4 flex items-center">
+                    <i class="fas fa-lightbulb text-yellow-500 mr-2"></i> Recommendations
+                </h2>
                 <div class="space-y-4">
                     <div class="bg-gray-100 dark:bg-gray-700 p-4 rounded-lg">
                         <h3 class="font-semibold text-lg text-primary">Optimize Peak Hours</h3>
-                        <p class="text-sm mt-1">Focus on staffing and promotions between <span id="peakHours" class="font-bold"></span> to capitalize on high traffic.</p>
+                        <p class="text-sm mt-1">Focus on staffing and promotions between <span id="peakHours" class="font-bold text-primary-dark dark:text-yellow-400"></span> to capitalize on high traffic.</p>
                     </div>
                     <div class="bg-gray-100 dark:bg-gray-700 p-4 rounded-lg">
                         <h3 class="font-semibold text-lg text-primary">Target Key Demographics</h3>
-						<div id="targetDemographicsOutput" class="p-4 bg-white rounded-lg shadow-md">
-                        <p class="text-sm text-gray-500">Loading analysis...</p>
+                        <div id="targetDemographicsOutput" class="mt-2 text-sm">
+                            <p class="text-gray-500 italic">Loading analysis...</p>
+                        </div>
                     </div>
                 </div>
             </div>
 
             <!-- Overview Map Card -->
-            <div class="bg-cream dark:bg-gray-800 p-6 rounded-lg shadow-md border border-gray-200 dark:border-gray-700">
-                <h2 class="text-xl font-bold mb-4">Overview Map</h2>
-                <div class="flex justify-end mb-2 space-x-2">
-                    <button id="toggleMapViewBtn" class="bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 py-1 px-3 rounded-md shadow hover:bg-gray-300 dark:hover:bg-gray-600 transition duration-300 text-xs">Switch to Clusters</button>
+            <div class="lg:col-span-7 bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md border border-gray-200 dark:border-gray-700">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-xl font-bold">Overview Map</h2>
+                    <button id="toggleMapViewBtn" class="bg-primary/10 hover:bg-primary/20 text-primary dark:text-primary-dark py-1.5 px-3 rounded-md border border-primary/20 transition duration-300 text-xs font-bold uppercase tracking-wider">
+                        <i class="fas fa-layer-group mr-1"></i> Switch View
+                    </button>
                 </div>
-                <div id="map" class="map-container">
-                    <div id="mapLegend" class="map-legend dark:bg-gray-800 dark:text-white">
-                        <h4 class="font-bold mb-2">Item Categories</h4>
-                    </div>
+                
+                <div class="relative">
+                    <div id="map" class="map-container" style="height: 450px;"></div>
+                    
+                    <div id="mapLegend" class="map-legend dark:bg-gray-900 dark:text-white border border-gray-200 dark:border-gray-700">
+                        <h4 class="font-bold mb-2 border-b pb-1 text-xs">Item Category</h4>
+                        </div>
                 </div>
             </div>
-		</section>
+        </section>
 			 <!-- Data Management Section -->
         <section class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md border border-gray-200 dark:border-gray-700">
             <h2 class="text-xl font-bold mb-4">Data Management</h2>
@@ -260,22 +316,8 @@
                 </div>
                 <div>
                     <label for="activityTime" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Time of Day</label>
-                    <select id="activityTime" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-dark focus:ring focus:ring-primary-dark focus:ring-opacity-50 dark:bg-gray-700 dark:border-gray-600">
-					 <option value="">Select Time of Day</option>
-                       <option value="08:00">08:00</option>
-                       <option value="09:00">09:00</option> 
-					   <option value="10:00">10:00</option>
-                       <option value="11:00">11:00</option>
-					   <option value="12:00">12:00</option>
-                       <option value="13:00">13:00</option> 
-					   <option value="14:00">14:00</option>
-                       <option value="15:00">15:00</option>
-					   <option value="16:00">16:00</option>
-					   <option value="17:00">17:00</option>
-                       <option value="18:00">18:00</option> 
-					   <option value="19:00">19:00</option>
-                       <option value="20:00">20:00</option>
-                    </select>
+                    <input type="text" id="activityTime" name="activityTime" readonly 
+                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm bg-gray-100 dark:bg-gray-600 cursor-not-allowed focus:ring-0">
                 </div>
                 <div>
                     <label for="activityLat" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Location Latitude</label>
@@ -284,21 +326,76 @@
                 <div>
                     <label for="activityLon" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Location Longitude</label>
                     <input type="number" step="any" id="activityLon" name="activityLon" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-dark focus:ring focus:ring-primary-dark focus:ring-opacity-50 dark:bg-gray-700 dark:border-gray-600">
-                </div>				              
+                </div>	
+				<div class="mb-4">
+                    <button type="button" id="locateBtn" onclick="locateUser()" 
+                        class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-4 rounded-lg flex items-center justify-center transition-all shadow-md">
+                        <i class="fas fa-location-crosshairs mr-2"></i> 
+                        <span id="locateBtnText">Use My Exact Current Location</span>
+                    </button>
+                    <p class="text-xs text-gray-500 mt-1 italic text-center">Note: Requires GPS/Location permission.</p>
+                </div>
                 <div>
                     <label for="activityCount" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Consumer Count</label>
-                    <input type="number" id="activityCount" name="activityCount" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-dark focus:ring focus:ring-primary-dark focus:ring-opacity-50 dark:bg-gray-700 dark:border-gray-600">
+                    <input type="number" id="activityCount" name="activityCount" value="1" readonly 
+                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm bg-gray-100 dark:bg-gray-600 cursor-not-allowed focus:ring-0">
                 </div>
                 <div>
                     <label for="activityAge" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Age Group</label>
-                    <input type="text" id="activityAge" name="activityAge" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-dark focus:ring focus:ring-primary-dark focus:ring-opacity-50 dark:bg-gray-700 dark:border-gray-600">
-                </div>                              
+                    <select id="activityAge" name="activityAge" required 
+                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-dark focus:ring focus:ring-primary-dark focus:ring-opacity-50 dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+                        <option value="" disabled selected>Select age range...</option>
+                        <option value="15-20">15-20</option>
+                        <option value="21-25">21-25</option>
+                        <option value="26-30">26-30</option>
+                        <option value="31-35">31-35</option>
+                        <option value="36-40">36-40</option>
+                        <option value="41-45">41-45</option>
+                        <option value="46-50">46-50</option>
+                        <option value="51-55">51-55</option>
+                        <option value="56+">56+</option>
+                    </select>
+                </div>                                  
                 <button type="submit" class="w-full py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-dark">Add Data</button>
             </form>
         </div>
     </div>
 	
-    <script>
+    <script> 
+	    const groceryData = {
+            "Fruits": ["Apples", "Grapes", "Oranges", "Avocados", "Peaches", "Pineapple", "Pears", "Apricots", "Bananas", "Berries", "Cherries", "Kiwi", "Lemons", "Limes", "Melons", "Nectarines", "Papaya", "Plums", "Pomegranate", "Watermelon"],
+            "Vegetables": ["Potatoes", "Tomatoes", "Onions", "Carrots", "Lettuce", "Broccoli", "Peppers", "Garlic", "Broccoli", "Cauliflower", "Eggplant", "Cucumbers", "Corn", "Spinach", "Salad Greens","Artichokes", "Basil", "Beets", "Cabbage", "Sprouts", "Peppers", "Zucchini"],
+            "Meat": ["Chicken", "Game Meat", "Turkey", "Beef", "Pork", "Rabbit", "Bacon", "Hot Dogs", "Steak", "Ground Turkey", "Deli Meat", "Ham", "Sausage"],
+            "Fish and shellfish": ["Mackerel", "Alaska Pollock", "Salmon", "Cod", "Tilapia", "Tuna","Catfish", "Lobster", "Crab", "Oysters", "Bream", "Tilapia", "Haliburt"],
+            "Breakfast & Dairy": ["Milk", "Eggs", "Yogurt", "Cheese", "Oats", "Granola", "Grits", "Pancake mix", "Instant", "Cereal"],
+            "Bakery": ["Whole Wheat", "Dinner Rolls", "Sandwich", "Croutons", "White Bread", "Pies", "Muffins", "Pastries", "Cookies","Tortillas Corn", "Donuts", "Hamburger Buns", "Cake", "Bagels", "Hotdog Buns", "Tortillas Flour"],
+            "Beverages": ["Water", "Coffee", "Milk", "Juice", "Club Soda", "Tea", "Beer", "Champagne", "Soft Drinks", "Liquor", "Diet Soft Drinks", "Energy Drinks"],
+            "Baking": ["Flour", "Baking Powder", "Butter", "Milk", "Eggs", "Baking Soda", "Bread Crumbs", "Cake Decor", "Cake Mix", "Peaches", "Chocolate Powder", "Cocoa", "Cornmeal", "Cornstarch", "Food Coloring", "Frosting", "Muffin mix", "Pie Crust", "Sugar Brown", "Sugar Powdered", "Yeast"],
+            "Wine": ["Red", "White", "Rosé", "Sparkling", ],
+            "Condiments, Spices & Sauces": ["Salt", "Sugar", "BBQ Sauce", "Catsup", "Cocktail Sauce", "Pepper", "Oregano", "Cinnamon", "Ketchup", "Mayonnaise", "Mustard", "Honey", "Hot Sauce", "Cooking Spray", "Horseradish", "Lemon Juice", "Olive Oil", "Relish", "Salad Dressing", "Salsa", "Steak Sauce", "Soy Sauce", "Sweet & Sour", "Teriyaki", "Vegetable Oil", "Vinegar"],
+			"Seasoning": ["Basil", "Bay Leaves", "BBQ Seasoning", "Cinnamon", "Cloves", "Cumin", "Curry", "Dill", "Garlic Powder", "Garlic Salt", "Gravy Mix", "Italian Seasoning", "Marinade", "Meat Tenderizer", "Oregano", "Paprika", "Pepper", "Poppy Seed", "Soup Mix", "Vanilla Extract"],
+            "Canned Goods": ["Olives (Black)", "Soup", "Tuna", "Olives (Green)", "Applesauce", "Baked Beans", "Black Beans", "Broth", "Bullion Cubes", "Canned Fruit", "Canned Vegetables", "Chilli", "Jam/Jelly", "Creamed Corn", "Pasta Sauce", "Peanut Butter", "Chilli", "Pickles", "Pie Filling", "Mushrooms"],
+			"Paper Products": ["Aluminium Foil", "Coffe Filters", "Cups", "Garbage Bags", "Napkins", "Paper Plates", "Paper Towels", "Plastic Bags", "Plastic Cutlery", "Plastic Wrap", "Waxed Paper", "Straws"],
+            "Snacks": ["Chips", "Crackers", "Pretzels", "Popcorn", "Peanuts", "Nuts", "Candy", "Cookis", "Dried Fruit", "Gelatin", "Seeds", "Granolar Bars", "Gums", "Raisins", "Potato Chips", "Pudding", "Tortilla Chips"],
+            "Baby Items": ["Baby Food", "Diapers", "Wet Wipes", "Moisturizing Lotion", "Diaper Cream", "Formula"],
+            "Pasta/Rice": ["Spaghetti", "Macaroni", "Noodles", "White Rice", "Lasagna", "Mac $ Cheese", "Burger Helper", "Brown Rice", "Rice Mix", "Couscous"],
+			"Pets": ["Cats Food", "Cat Sand", "Dog Food", "Shampoo", "Treats", "Flue Treatment"],
+			"Misc. Items": ["Batteries", "Charcoal", "Greeting Cards"],
+			"Refridgerated": ["Buffer", "Cheddar Cheese", "Milk", "Processed Cheese", "Polony", "Yoghurt", "Ice Cream", "Sower Cream", "Mozzarella", "Maheu"],
+			"Cleaning": ["Air Freshener", "Bleach", "Dish Soap", "Dishwasher Detergent", "Fabric Softener", "Glass Spray", "Laundry Soap", "Polish", "Sponges", "Vacuum Bags"],
+			"Personal Care": ["Bath Soap", "Bug Repellent", "Conditioner", "Cotton Swabs", "Dental Floss", "Deodorant", "Facial Tissue", "Family Planning", "Feminine Products", "Pads", "Hair Spray", "Hand Soap", "Lip Care", "Lotion", "Makeup", "Mouthwash", "Razors/Blades", "Shampoo", "Shaving Cream", "Sunscreen", "Toilet Tissue", "Toothbrush", "Toothpaste"],
+        };
+		
+		const groceryImages = [
+            "https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&q=90&w=1920", // 1. Main Aisle
+			"https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&q=80&w=1920",
+			"https://images.unsplash.com/photo-1583258292688-d0213dc5a3a8?auto=format&fit=crop&q=90&w=1920",  // Refrigerated
+            "https://images.unsplash.com/photo-1578916171728-46686eac8d58?auto=format&fit=crop&q=80&w=1920",
+            "https://images.unsplash.com/photo-1543168256-418811576931?auto=format&fit=crop&q=80&w=1920",
+			"https://images.unsplash.com/photo-1583258292688-d0213dc5a3a8?auto=format&fit=crop&q=90&w=1920"
+		];
+		
+		let currentImgIndex = 0;		
         // Store charts, map, and heatmap layers instance globally for updates
         let allActivityData = []; // <--- Master copy for filtering
 		let hourlyActivityChart, demographicsChart, map;
@@ -306,6 +403,16 @@
         let clusterLayers = {};
         let currentMapMode = 'heatmap'; // 'heatmap' or 'cluster'
         const categoryColors = ['#5D5CDE', '#34D399', '#FBBF24', '#F87171', '#60A5FA', '#8B5CF6'];
+		
+		function updateBackground() {
+            const bgContainer = document.getElementById('slideshow-bg');
+            if (bgContainer && groceryImages.length > 0) {
+                // Change the image
+                bgContainer.style.backgroundImage = `url('${groceryImages[currentImgIndex]}')`;
+                
+                // Logic: Move to next image, or back to 0 if at the end of the list
+                currentImgIndex = (currentImgIndex + 1) % groceryImages.length;
+            }
 
     // CRITICAL NEW GLOBAL VARIABLE: Stores the data currently displayed (cleared on Refresh)
         let localActivityData = {
@@ -314,6 +421,14 @@
             dashboardMetrics: { totalConsumers: 0, activeLocations: 0, conversionRate: '0%' },
             targetKeyDemographics: { targetAgeGroup: 'N/A', keyInteraction: 'N/A', keyCategory: 'N/A' }
         };
+		
+		}
+
+        // Start the background timer as soon as the page is ready
+        document.addEventListener('DOMContentLoaded', () => {
+            updateBackground(); // Show first image immediately
+                setInterval(updateBackground, 5000); // Swap images every 5 seconds
+        });
 		
         // ---- API UTILITIES ----
         async function fetchWithAuth(url, options = {}) {
@@ -342,12 +457,17 @@
         function showActivityModal() {
             document.getElementById('addActivityModal').classList.remove('hidden');
 			document.getElementById('interaction-inputs').innerHTML = ''; // Clear previous fields
-            addInteractionField(); // Add the first interaction field
-            getGeolocation();
+            addInteractionField(); // Add the first interaction field          
 			
 			// Auto-generate current date (YYYY-MM-DD)
-			const today = new Date().toISOString().split('T')[0];
+			const now = new Date();
+			const today = now.toISOString().split('T')[0];
 			document.getElementById('activityDate').value = today;
+			
+			// --- NEW: Auto-generate current time (HH:MM) ---
+			const hours = String(now.getHours()).padStart(2, '0');
+			const minutes = String(now.getMinutes()).padStart(2, '0');
+			document.getElementById('activityTime').value = `${hours}:${minutes}`;
 			
          // Attempt to get current geolocation when the modal is shown
             getGeolocation();
@@ -356,49 +476,91 @@
 
         function addInteractionField() {
             const inputsContainer = document.getElementById('interaction-inputs');
-            const groupId = Date.now(); // Unique ID for this group
+            const groupId = Date.now(); 
             const newField = document.createElement('div');
             newField.className = 'p-3 bg-gray-50 dark:bg-gray-700 rounded-md border border-gray-200 dark:border-gray-600 mb-4 interaction-group';
-    
+
+            // Generate the sub-category options from our data
+            let subCatOptions = Object.keys(groceryData).map(cat => `<option value="${cat}">${cat}</option>`).join('');
+
             newField.innerHTML = `
                 <div class="flex justify-between items-center mb-2">
-                    <span class="text-xs font-bold uppercase text-gray-500">Interaction Group</span>
+                    <span class="text-xs font-bold uppercase text-gray-500">Grocery Item</span>
                     <button type="button" class="text-red-500 hover:text-red-700 remove-interaction-field"><i class="fas fa-trash"></i></button>
-                    </div>
-                    <div class="grid grid-cols-2 gap-2 mb-3">
+                </div>				
+                <div class="grid grid-cols-1 gap-3 mb-3">
                     <div>
-                        <label class="block text-xs font-medium text-gray-700 dark:text-gray-300">Behavior Type</label>
+                        <label class="block text-xs font-medium text-gray-700 dark:text-gray-300">Behavior</label>
                         <select name="groupBehaviour" required class="w-full p-2 text-sm border border-gray-300 rounded-md dark:bg-gray-800 dark:border-gray-600 dark:text-white">
                             <option value="Purchasing">Purchasing</option>
                             <option value="Browsing">Browsing</option>
                             <option value="Returning">Returning</option>
                         </select>
+                        <input type="hidden" name="groupCategory" value="Groceries">
+                    </div>
+                </div>
+        
+                <div class="grid grid-cols-2 gap-2">
+                    <div>
+                        <label class="block text-xs font-medium text-gray-700 dark:text-gray-300">Sub-Category</label>
+                        <select onchange="populateItems(this, '${groupId}')" name="subCategory" required class="w-full p-2 text-sm border border-gray-300 rounded-md dark:bg-gray-800 dark:border-gray-600 dark:text-white">
+                            <option value="">Select Category...</option>
+                            ${subCatOptions}
+                        </select>
                     </div>
                     <div>
-                        <label class="block text-xs font-medium text-gray-700 dark:text-gray-300">Item Category</label>
-                        <select name="groupCategory" required class="w-full p-2 text-sm border border-gray-300 rounded-md dark:bg-gray-800 dark:border-gray-600 dark:text-white">
-                            <option value="Groceries">Groceries</option>
-                            <option value="Electronics">Electronics</option>
-                            <option value="Apparel">Apparel</option>
-                            <option value="Home Goods">Home Goods</option>
-                            <option value="Other">Other</option>
+                        <label class="block text-xs font-medium text-gray-700 dark:text-gray-300">Specific Item</label>
+                        <select name="itemName" id="item-select-${groupId}" required class="w-full p-2 text-sm border border-gray-300 rounded-md dark:bg-gray-800 dark:border-gray-600 dark:text-white">
+                            <option value="">Select Item...</option>
                         </select>
                     </div>
                 </div>
-                <div class="item-list space-y-2" id="items-${groupId}">
-                    <label class="block text-xs font-medium text-gray-700 dark:text-gray-300">Items</label>
-                    <div class="flex space-x-2">
-                        <input type="text" name="itemName" placeholder="Item name..." required class="flex-1 p-2 text-sm rounded-md border border-gray-300 dark:bg-gray-800 dark:border-gray-600">
-                    </div>
-                </div>
-                <button type="button" onclick="addItemToGroup('${groupId}')" class="mt-2 text-xs text-blue-500 font-semibold hover:underline">
-                    + Add another item to this category
-                </button>
             `;
             inputsContainer.appendChild(newField);
             newField.querySelector('.remove-interaction-field').addEventListener('click', () => newField.remove());
         }
+		
+        function handleCategoryChange(selectElement, groupId) {
+            const dynamicArea = document.getElementById(`dynamic-item-area-${groupId}`);
+    
+            // Since we only have groceries, we always show the sub-category dropdown
+            let subCatOptions = Object.keys(groceryData).map(cat => `<option value="${cat}">${cat}</option>`).join('');
+    
+            dynamicArea.innerHTML = `
+                <div class="grid grid-cols-2 gap-2">
+                    <div>
+                        <label class="block text-xs font-medium text-gray-700 dark:text-gray-300">Section (Sub-Category)</label>
+                        <select onchange="populateItems(this, '${groupId}')" name="subCategory" required class="w-full p-2 text-sm border border-gray-300 rounded-md dark:bg-gray-800 dark:border-gray-600 dark:text-white">
+                            <option value="">Select Section...</option>
+                            ${subCatOptions}
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-gray-700 dark:text-gray-300">Specific Item</label>
+                        <select name="itemName" required class="item-list-dropdown w-full p-2 text-sm border border-gray-300 rounded-md dark:bg-gray-800 dark:border-gray-600 dark:text-white">
+                            <option value="">Select Item...</option>
+                        </select>
+                    </div>
+                </div>
+            `;
+        }
 
+            function populateItems(subCatSelect, groupId) {
+                const itemDropdown = document.getElementById(`item-select-${groupId}`);
+                const selectedSection = subCatSelect.value;
+    
+                // Clear existing options
+                itemDropdown.innerHTML = '<option value="">Select Item...</option>';
+    
+                if (selectedSection && groceryData[selectedSection]) {
+                    groceryData[selectedSection].forEach(item => {
+                        const opt = document.createElement('option');
+                        opt.value = item;
+                        opt.textContent = item;
+                        itemDropdown.appendChild(opt);
+                    });
+                }
+            }
         // Helper to add a new item row within a specific group
         function addItemToGroup(groupId) {
             const container = document.getElementById(`items-${groupId}`);
@@ -495,11 +657,13 @@
 
         function updateHourlyChart(data) {
             const hourlyCounts = data.reduce((acc, curr) => {
-                const hour = new Date(`2000/01/01 ${curr.time}`).getHours();
-                const label = `${hour}:00`;
+                const hour = curr.time.split(':')[0];
+                const label = `${hour}:00`;// Always group to the top of the hour
                 acc[label] = (acc[label] || 0) + curr.count;
                 return acc;
             }, {});
+			
+			// Sort labels to ensure graph goes from 00:00 to 23:00
             const labels = Object.keys(hourlyCounts).sort();
             const counts = labels.map(label => hourlyCounts[label]);
             hourlyActivityChart.data.labels = labels;
@@ -527,8 +691,40 @@
             L.tileLayer('http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                 attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
             }).addTo(map);
+			
+			map.on('locationfound', (e) => {
+			    const btnText = document.getElementById('locateBtnText');
+                btnText.innerText = "Location Found!";
+				if (clickMarker) map.removeLayer(clickMarker);
+            
+                clickMarker = L.marker(e.latlng).addTo(map);
+                document.getElementById('lat').value = e.latlng.lat.toFixed(6);
+                document.getElementById('lon').value = e.latlng.lng.toFixed(6);
+            
+			    map.flyTo(e.latlng, 16); 
+			
+			    setTimeout(() => { btnText.innerText = "Use My Exact Current Location"; }, 3000);
+        });
+		
+		map.on('locationerror', (e) => {
+            alert("Could not access your location. Please check browser permissions.");
+            document.getElementById('locateBtnText').innerText = "Location Failed";
+        });
+    }
+	
+		function locateUser() {
+		    if (!map) return;
+    
+            document.getElementById('locateBtnText').innerText = "Locating...";
+    
+            // Request location with High Accuracy (GPS instead of IP)
+            map.locate({
+                setView: true, 
+                maxZoom: 18, 
+                enableHighAccuracy: true, // This is the "Exact Location" fix
+                timeout: 10000
+            });
         }
-
         function clearMapLayers() {
             // 1. Remove all stored heat layers from the map
             for (const key in heatLayers) {
@@ -548,106 +744,112 @@
         }
           
         function updateMap(activityData) {
-           console.log("Updating map with data:", activityData);
+           console.log("Updating map with sub-category data:", activityData);
 
             // CRITICAL: Clear layers AND clear the global storage objects
 			//This must happen only here,at the start of a full data refresh.
+			// 1. Clear existing layers and reset the legend header
             clearMapLayers(); 
             
             const legend = document.getElementById('mapLegend');
             legend.innerHTML = '<h4 class="font-bold mb-2">Item Categories</h4>';
 
             // Flatten the activity data (Logic remains the same, assuming it works)
+			// 2. Flatten data using sub-category (interaction.category)
             const flattenedPoints = [];
-            activityData.forEach(activity => {
-                if (activity.lat && activity.lon && activity.count > 0 && Array.isArray(activity.interactions)) {
-                    activity.interactions.forEach(interaction => {
-                        flattenedPoints.push({
-                            lat: activity.lat,
-                            lon: activity.lon,
-                            count: activity.count, // Consumer count for this visit
-                            category: interaction.category || 'Other',
-                            behaviour: interaction.type || 'N/A',
-                            item: interaction.item || 'N/A'
+            activityData.forEach(activity => {                
+                activity.interactions.forEach(interaction => {
+				    // Pull the specific sub-category (e.g., Bakery, Produce, Dairy)
+                    const subCatName = interaction.category || "Uncategorized";
+					
+                    flattenedPoints.push({
+                        lat: activity.lat,
+                        lon: activity.lon,
+						// Use the weight of the specific interaction, NOT the total group count
+                        count: interaction.weight || 1,
+                        // We tell the map to use the Sub-Category (Fruits, Meat, etc.) for the Legend colors 
+                        category: subCatName, // Using the sub-category as the primary category for the map
+                        behaviour: interaction.type || 'N/A',
+                        item: interaction.item || 'N/A'
                         });
                    });
-                }
             });
 
             if (flattenedPoints.length === 0) {
                 console.log("No activity data with coordinates and interactions to display on map.");
-                legend.innerHTML += `<p class="text-xs text-gray-500 dark:text-gray-400">No data available to display.</p>`;
+                legend.innerHTML += `<p class="text-xs text-gray-500">No data available.</p>`;
                 return;
             }
  
-            // Group the *flattened* data by category for layering
+            // 3. Group the flattened data by Sub-Category
             const groupedData = flattenedPoints.reduce((acc, curr) => {
-                const rawCategory = curr.category || 'Other';
-                const category = rawCategory.trim().toLowerCase().replace(/\s/g, '-'); 
+                const rawCategory = curr.category;
+                const key = rawCategory.trim().toLowerCase().replace(/\s/g, '-'); 
         
-                if (!acc[category]) {
-                    acc[category] = { 
+                if (!acc[key]) {
+                    acc[key] = {
                         heat: [], 
                         cluster: [],
                         label: rawCategory // Store original label for legend
                     };
                 }
                 // Leaflet Heat expects [lat, lon, intensity]
-                acc[category].heat.push([curr.lat, curr.lon, curr.count]); 
+                acc[key].heat.push([curr.lat, curr.lon, curr.count]);
                 
-                // Marker Cluster expects an L.marker instance
-                acc[category].cluster.push(L.marker([curr.lat, curr.lon]).bindPopup(
-                    `<b>Item:</b> ${curr.item}<br><b>Category:</b> ${curr.category}<br><b>Behavior:</b> ${curr.behaviour}<br><b>Consumers:</b> ${curr.count}`
+                // Add Marker for Cluster view
+                acc[key].cluster.push(L.marker([curr.lat, curr.lon]).bindPopup(
+                    `<b>Sub-Category:</b> ${curr.category}<br>` +
+					`<b>Item:</b> ${curr.item}<br>` +
+					`<b>Consumers:</b> ${curr.count}`
                 ));
                 return acc;
             }, {});
 
+            // 4. Generate Layers and Legend items
             const categories = Object.keys(groupedData).sort();
-            const colors = categoryColors.slice(0, categories.length);
-
-            // Calculate map bounds based on all points
-            const allPoints = flattenedPoints.map(d => [d.lat, d.lon]);
-            if (allPoints.length > 0) {
-                const bounds = L.latLngBounds(allPoints);
-                map.fitBounds(bounds, { padding: [50, 50] }); // Zoom map to fit all data points
-            }
-
-            categories.forEach((category, index) => {
-                const categoryLabel = groupedData[category].label;
     
-                // Heat Layer Creation (using unique colors)
-                const color = colors[index % colors.length];
-                const heatLayer = L.heatLayer(groupedData[category].heat, {
+            categories.forEach((key, index) => {
+                const data = groupedData[key];
+                const color = categoryColors[index % categoryColors.length];
+
+                // Create the Heat Layer
+                heatLayers[key] = L.heatLayer(data.heat, {
                     radius: 25,
                     blur: 15,
                     gradient: { 0.4: color, 0.6: color, 1.0: color }
                 });
-                // Store the layer instance globally
-                heatLayers[category] = heatLayer; 
 
-                // Cluster Layer Creation
+                // Create the Cluster Layer
                 const clusterGroup = L.markerClusterGroup();
-                clusterGroup.addLayers(groupedData[category].cluster);
-                 // Store the cluster group instance globally
-                clusterLayers[category] = clusterGroup; 
+                clusterGroup.addLayers(data.cluster);
+                clusterLayers[key] = clusterGroup; 
 
-                // Create and add legend item (The Checklist)
+                // 5. Build Legend Item (Checklist)
                 const legendItem = document.createElement('div');
-                legendItem.className = 'map-legend-item';
+                legendItem.className = 'map-legend-item flex items-center mb-1';
                 legendItem.innerHTML = `
-                    <input type="checkbox" id="legend-${category}" data-category="${category}" checked class="mr-2">
-                    <div class="w-4 h-4 rounded-full" style="background-color: ${color};"></div>
-                    <label for="legend-${category}" class="text-sm cursor-pointer ml-2">${categoryLabel.toUpperCase()}</label>
+                    <input type="checkbox" id="legend-${key}" data-category="${key}" checked class="mr-2 cursor-pointer">
+                    <div class="w-3 h-3 rounded-full" style="background-color: ${color};"></div>
+                    <label for="legend-${key}" class="text-xs cursor-pointer ml-2 text-gray-700 dark:text-gray-200 uppercase font-medium">
+                        ${data.label}
+                    </label>
                 `;
                 legend.appendChild(legendItem);
 
-                // Add event listener to the checkbox
+                // Add toggle event listener
                 legendItem.querySelector('input').addEventListener('change', updateMapDisplay);
             });
 
-            // CRITICAL: Initially display layers based on the current mode and checkbox state
+            // 6. Zoom map to fit the data points
+            const allPoints = flattenedPoints.map(d => [d.lat, d.lon]);
+            if (allPoints.length > 0) {
+                map.fitBounds(L.latLngBounds(allPoints), { padding: [30, 30] });
+            }
+
+            // Refresh display based on current mode (Heatmap/Cluster)
             updateMapDisplay();
-    }
+        }
+		
         // New function to update the map based on current state
         function updateMapDisplay() {
             const toggleButton = document.getElementById('toggleMapViewBtn');
@@ -713,36 +915,32 @@
 
         function updateTargetDemographics(demographics) {
             const outputDiv = document.getElementById('targetDemographicsOutput');
-            // Deconstruct the data received from the server
-            const { targetAgeGroup, keyInteraction, keyCategory } = demographics;
+            // Deconstruct the new keyItem field
+            const { targetAgeGroup, keyInteraction, keyCategory, keyItem } = demographics;
 
-            if (targetAgeGroup === 'N/A') {
+            if (targetAgeGroup === 'N/A' || keyItem === 'N/A') {
                 outputDiv.innerHTML = '<p class="text-sm text-gray-500">No activity data available to generate recommendations.</p>';
                 return;
             }
 
-            // --- Generate Recommendation Text ---
+            let recommendation = `<p class="mb-2 text-base text-gray-800">Your **Primary Target Demographic** is the **${targetAgeGroup}** age group.</p>`;
     
-            let recommendation = `<p class="mb-2 text-base text-gray-800">Your **Primary Target Demographic** is the **${targetAgeGroup}** age group, as they exhibit the highest volume of activity.</p>`;
-    
-            recommendation += `<p class="mb-2 text-sm text-gray-700">The most common behavior observed is **${keyInteraction}** related to **${keyCategory}**.</p>`;
-    
-            // Add specific, realistic recommendations based on the key interaction
+            // Highlight the specific item instead of the category
+            recommendation += `<p class="mb-2 text-sm text-gray-700">The most popular specific product is **${keyItem}**, often associated with **${keyInteraction}** behavior.</p>`;
+
+            // Item-specific recommendations
             if (keyInteraction === 'Browsing') {
                 recommendation += `<p class="p-3 mt-4 text-sm bg-yellow-50 border border-yellow-200 rounded-md">
-                    <strong>🎯 Recommendation:</strong> Since **Browsing** is dominant, focus on **in-store conversion tactics**. Deploy targeted point-of-sale displays or offer limited-time deals (e.g., flash sales) near the **${keyCategory}** area to convert browsing interest from the **${targetAgeGroup}** group into purchases.
+                    <strong>💡 Recommendation:</strong> Many users in the **${targetAgeGroup}** group are looking at **${keyItem}** but not buying. Consider a "Bundle Deal" where purchasing **${keyItem}** gives a discount on a related item in the **${keyCategory}** category to seal the deal.
                 </p>`;
             } else if (keyInteraction === 'Purchasing') {
                 recommendation += `<p class="p-3 mt-4 text-sm bg-green-50 border border-green-200 rounded-md">
-                    <strong>🎯 Recommendation:</strong> High **Purchasing** volume suggests satisfaction. Focus on **maximising Average Transaction Value**. Promote complementary products (e.g., accessories or warranties) and use loyalty programs aimed at the **${targetAgeGroup}** group for **${keyCategory}** to encourage repeat business.
-                </p>`;
+                    <strong>💡 Recommendation:</strong> **${keyItem}** is a top seller for **${targetAgeGroup}**! Ensure high stock levels and consider placing high-margin items from the **${keyCategory}** section right next to the **${keyItem}** shelf to drive impulse buys.
+                </p>
+                <p class="text-xs text-gray-500 mt-2">Inventory Alert: Check stock for "${keyItem}" immediately.</p>`;
             } else if (keyInteraction === 'Returning') {
                 recommendation += `<p class="p-3 mt-4 text-sm bg-red-50 border border-red-200 rounded-md">
-                    <strong>🎯 Recommendation:</strong> High **Returning** volume suggests an opportunity to improve service or product quality perception. Initiate a brief feedback survey at the point of return for the **${targetAgeGroup}** group, specifically on **${keyCategory}**, to mitigate negative sentiment and retain the customer.
-                </p>`;
-            } else {
-                recommendation += `<p class="p-3 mt-4 text-sm bg-indigo-50 border border-indigo-200 rounded-md">
-                    <strong>🎯 Recommendation:</strong> Focus on understanding and leveraging the dominant **${keyInteraction}** behavior observed in the **${targetAgeGroup}** demographic around the **${keyCategory}** items.
+                    <strong>💡 Recommendation:</strong> There is a high return rate for **${keyItem}** among the **${targetAgeGroup}** demographic. Investigate if there is a sizing issue (for apparel) or a quality batch issue specifically affecting **${keyItem}**.
                 </p>`;
             }
 
@@ -839,6 +1037,7 @@
             let purchaseCount = 0;
             let interactionCounts = {};
             let categoryCounts = {};
+			let itemNameCounts = {};
 
             // Pass 1: Gather raw numbers for metrics and demographics
             activityData.forEach(activity => {
@@ -857,7 +1056,9 @@
                     }
                     interactionCounts[interaction.type] = (interactionCounts[interaction.type] || 0) + 1;
                     categoryCounts[interaction.category] = (categoryCounts[interaction.category] || 0) + 1;
-                });
+                
+				    itemNameCounts[interaction.item] = (itemNameCounts[interaction.item] || 0) + 1;
+				});
             });
 
             // Calculate Metrics
@@ -876,11 +1077,12 @@
             let targetAgeGroup = demographics.length > 0 ? demographics[0].age_group : 'N/A';
             let keyInteraction = Object.keys(interactionCounts).sort((a, b) => interactionCounts[b] - interactionCounts[a])[0] || 'N/A';
             let keyCategory = Object.keys(categoryCounts).sort((a, b) => categoryCounts[b] - categoryCounts[a])[0] || 'N/A';
-
+            let keyItem = Object.keys(itemNameCounts).sort((a, b) => itemNameCounts[b] - itemNameCounts[a])[0] || 'N/A';
+			
             return {
                 dashboardMetrics: { totalConsumers, activeLocations, conversionRate },
                 demographics: demographics,
-                targetKeyDemographics: { targetAgeGroup, keyInteraction, keyCategory }
+                targetKeyDemographics: { targetAgeGroup, keyInteraction, keyCategory, keyItem }
             };
         }
 		
@@ -943,9 +1145,10 @@
             const groups = document.querySelectorAll('.interaction-group');
             const interactions = [];
 
-            groups.forEach(group => {
-                const behaviour = group.querySelector('[name="groupBehaviour"]').value;
+            groups.forEach(group => {               
+				const behaviour = group.querySelector('[name="groupBehaviour"]').value;
                 const category = group.querySelector('[name="groupCategory"]').value;
+				const subCategory = group.querySelector('[name="subCategory"]')?.value || "Groceries";
                 const itemInputs = group.querySelectorAll('[name="itemName"]');
 
                 itemInputs.forEach(input => {
@@ -955,7 +1158,7 @@
                         interactions.push({ 
                             type: behaviour, 
                             item: itemName, 
-                            category: category 
+                            category: subCategory,
                         });
                     }
                 });
@@ -1002,6 +1205,9 @@
         }
         // ---- INITIALIZATION AND EVENT LISTENERS ----
         document.addEventListener('DOMContentLoaded', function() {
+		    updateBackground(); // Show first image immediately
+			setInterval(updateBackground, 8000); // Change every 8 seconds
+			
             initCharts();
             initOverviewMap();
 
@@ -1033,7 +1239,10 @@
                         localStorage.setItem('userId', result.userId);
                         document.getElementById('authModal').classList.add('hidden');
                         document.getElementById('dashboard').classList.remove('hidden');
-                        map.invalidateSize();
+                        setTimeout(() => {
+						    map.invalidateSize();
+							console.log("Map size recalculated");
+                        }, 100);
                         fetchDashboardData();
                     } else {
                         authMessage.textContent = result.message;
@@ -1100,158 +1309,53 @@
                 `;
                 document.body.appendChild(messageBox);
             }            
-           document.getElementById('exportCsvBtn').addEventListener('click', async () => {
-    try {
-        const response = await fetchWithAuth('http://localhost:3000/api/activity/csv');
-        
-        if (!response.ok) {
-            throw new Error('Server responded with an error during CSV export.');
-        }
+            document.getElementById('exportCsvBtn').addEventListener('click', async () => {
+            try {
+                // 1. Get the current filter values from your input fields
+                const startDate = document.getElementById('filterStartDate').value;
+                const endDate = document.getElementById('filterEndDate').value;
 
-        // Get the CSV text data from the response
-        const csvData = await response.text();
+                // 2. Build the URL with query parameters if filters are set
+                let url = 'http://localhost:3000/api/activity/csv';
+                const params = new URLSearchParams();
+                if (startDate) params.append('startDate', startDate);
+                if (endDate) params.append('endDate', endDate);
         
-        // Create a blob and trigger a download
-        const blob = new Blob([csvData], { type: 'text/csv;charset=utf-8;' });
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.setAttribute('href', url);
-        a.setAttribute('download', 'consumer_activity_flattened.csv');
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        window.URL.revokeObjectURL(url); // Clean up
-        
-        showMessage("Export successful! consumer_activity.csv downloaded.", false);
-    } catch (error) {
-        console.error('Export failed:', error);
-        showMessage("Export failed. Check server console for details or ensure the server is running.", true);
-    }
-});
-        });
-    </script>
-</body>
-=======
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Consumer Behavior Tracker - Login</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        primary: '#5D5CDE',
-                        'primary-dark': '#4B4BC1',
-                    }
+                if (params.toString()) {
+                    url += `?${params.toString()}`;
                 }
-            },
-            darkMode: 'class'
-        }
-    </script>
-</head>
-<body class="bg-gray-100 dark:bg-gray-900 font-sans leading-normal tracking-normal text-gray-800 dark:text-gray-200">
 
-    <div id="authContainer" class="min-h-screen flex items-center justify-center">
-        <div class="relative p-8 bg-white dark:bg-gray-800 w-96 rounded-lg shadow-xl">
-            <h3 class="text-2xl font-bold mb-4 text-center">Login or Register</h3>
-            <form id="authForm" class="space-y-4">
-                <div>
-                    <label for="username" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Username</label>
-                    <input type="text" id="username" name="username" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-dark focus:ring focus:ring-primary-dark focus:ring-opacity-50 dark:bg-gray-700 dark:border-gray-600">
-                </div>
-                <div>
-                    <label for="password" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Password</label>
-                    <input type="password" id="password" name="password" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-dark focus:ring focus:ring-primary-dark focus:ring-opacity-50 dark:bg-gray-700 dark:border-gray-600">
-                </div>
-                <div class="flex justify-between space-x-2">
-                    <button type="button" id="registerBtn" class="w-full py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-dark">Register</button>
-                    <button type="submit" id="loginBtn" class="w-full py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-600">Login</button>
-                </div>
-            </form>
-            <p id="authMessage" class="mt-4 text-center text-sm font-medium"></p>
-        </div>
-    </div>
+                // 3. Fetch from the server (using the new URL with dates)
+                const response = await fetchWithAuth(url);
+        
+                if (!response.ok) {
+                    throw new Error('Server responded with an error during CSV export.');
+                }
 
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // Check if user is already logged in (token exists) and redirect immediately
-            const token = localStorage.getItem('token');
-            if (token) {
-                // Redirects to the dashboard if a token is present
-                window.location.href = 'dashboard.html';
-                return; // Stop execution
+                const csvData = await response.text();
+                const blob = new Blob([csvData], { type: 'text/csv;charset=utf-8;' });
+                const downloadUrl = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.setAttribute('href', downloadUrl);
+        
+                // 4. Set a dynamic filename so you know it's filtered
+                const fileName = (startDate || endDate) 
+                    ? `activity_filtered_${startDate || 'start'}_to_${endDate || 'end'}.csv` 
+                    : 'consumer_activity_all.csv';
+            
+                a.setAttribute('download', fileName);
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                window.URL.revokeObjectURL(downloadUrl);
+        
+                showMessage(`Export successful! ${fileName} downloaded.`, false);
+            } catch (error) {
+                console.error('Export failed:', error);
+                showMessage("Export failed. Please check if the server is running.", true);
             }
-
-            document.getElementById('authForm').addEventListener('submit', async function(e) {
-                e.preventDefault();
-                const username = document.getElementById('username').value;
-                const password = document.getElementById('password').value;
-                const authMessage = document.getElementById('authMessage');
-
-                try {
-                    const response = await fetch('https://cbt-marlo.onrender.com/api/login', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ username, password })
-                    });
-                    const result = await response.json();
-                    if (response.ok) {
-                        localStorage.setItem('token', result.token);
-                        localStorage.setItem('userId', result.userId);
-                        // CRITICAL: Redirect to the new dashboard page
-                        window.location.href = 'dashboard.html'; 
-                    } else {
-                        authMessage.textContent = result.message;
-                        authMessage.className = 'mt-4 text-center text-sm font-medium text-red-500';
-                    }
-                } catch (error) {
-                    authMessage.textContent = 'Failed to connect to server.';
-                    authMessage.className = 'mt-4 text-center text-sm font-medium text-red-500';
-                }
-            });
-
-            document.getElementById('registerBtn').addEventListener('click', async function() {
-                const username = document.getElementById('username').value;
-                const password = document.getElementById('password').value;
-                const authMessage = document.getElementById('authMessage');
-
-                try {
-                    const response = await fetch('https://cbt-marlo.onrender.com/api/register', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ username, password })
-                    });
-                    const result = await response.json();
-                    authMessage.textContent = result.message;
-                    authMessage.className = 'mt-4 text-center text-sm font-medium ' + (response.ok ? 'text-green-500' : 'text-red-500');
-
-                    // Optional: If registration is successful, automatically log in/redirect
-                    if (response.ok) {
-                        // Attempt to log in immediately after successful registration
-                        const loginResponse = await fetch('https://cbt-marlo.onrender.com/api/login', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ username, password })
-                        });
-                        const loginResult = await loginResponse.json();
-                        if (loginResponse.ok) {
-                            localStorage.setItem('token', loginResult.token);
-                            localStorage.setItem('userId', loginResult.userId);
-                            window.location.href = 'dashboard.html'; 
-                        }
-                    }
-
-                } catch (error) {
-                    authMessage.textContent = 'Failed to connect to server.';
-                    authMessage.className = 'mt-4 text-center text-sm font-medium text-red-500';
-                }
-            });
         });
+    });
     </script>
 </body>
->>>>>>> 91dc1713739a928fc87d3b21cf55f30571b582f2
 </html>
