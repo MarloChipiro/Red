@@ -119,7 +119,7 @@ app.post('/api/login', async (req, res) => {
         return res.status(400).json({ message: 'Invalid username or password' });
     }
 
-    const token = jwt.sign({ userId: user._id }, JWT_SECRET, { expiresIn: '1h' });
+    const token = jwt.sign({ userId: user._id }, JWT_SECRET, { expiresIn: '10h' });
     res.json({ token, userId: user._id });
 });
 // Function to convert nested JSON data to a flattened CSV string
