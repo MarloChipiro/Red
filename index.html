@@ -812,9 +812,12 @@
                 }
                 // Leaflet Heat expects [lat, lon, intensity]
                 acc[key].heat.push([curr.lat, curr.lon, curr.count]);
-                
+
+				const latJitter = (Math.random() - 0.5) * 0.00005; // Tiny offset (~5 meters)
+                const lonJitter = (Math.random() - 0.5) * 0.00005;
+	
                 // Add Marker for Cluster view
-                acc[key].cluster.push(L.marker([curr.lat, curr.lon]).bindPopup(
+                acc[key].cluster.push(L.marker([curr.lat + latJitter, curr.lon + lonJitter]).bindPopup(
                     `<b>Sub-Category:</b> ${curr.category}<br>` +
 					`<b>Item:</b> ${curr.item}<br>` +
 					`<b>Consumers:</b> ${curr.count}`
@@ -829,17 +832,26 @@
                 const data = groupedData[key];
                 const color = categoryColors[index % categoryColors.length];
 
-                // Create the Heat Layer
+                // Create the Cluster Layer
+                const clusterGroup = L.markerClusterGroup({
+					spiderfyOnMaxZoom: true,      // Fans out markers at the same spot
+                    showCoverageOnHover: true,    // Shows the area covered by the cluster
+                    zoomToBoundsOnClick: true,    // Zooms in when clicking a cluster
+                    maxClusterRadius: 20,         // Smaller radius (in pixels) makes sub-clusters more visible
+                    // This uses the category color for the spider lines
+                    spiderLegPolylineOptions: { weight: 1.5, color: color, opacity: 0.6 } 
+                });
+				
+                clusterGroup.addLayers(data.cluster);
+                clusterLayers[key] = clusterGroup; 
+
+				// Create Heatmap Layer
                 heatLayers[key] = L.heatLayer(data.heat, {
                     radius: 25,
                     blur: 15,
-                    gradient: { 0.4: color, 0.6: color, 1.0: color }
+                    maxZoom: 17,
+                    gradient: { 0.4: 'red', 0.6: 'cyan', 0.7: 'lime', 0.8: 'pink', 1.0: color }
                 });
-
-                // Create the Cluster Layer
-                const clusterGroup = L.markerClusterGroup();
-                clusterGroup.addLayers(data.cluster);
-                clusterLayers[key] = clusterGroup; 
 
                 // 5. Build Legend Item (Checklist)
                 const legendItem = document.createElement('div');
