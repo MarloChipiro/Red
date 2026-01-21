@@ -1073,14 +1073,9 @@
             let totalInteractions = 0;
             let purchaseCount = 0;
 			const ageCounts = {};
-            const interactionCounts = {};
-            const categoryCounts = {};
-			const itemNameCounts = {};
-
 			const stores = []; // Array to hold unique store centers [lat, lon]
 			const DISTANCE_THRESHOLD = 10; // 10 meters
-
-			const demographicAnalysis = {};
+	        const demographicAnalysis = {};
 
             // Pass 1: Gather raw numbers for metrics and demographics
             activityData.forEach(activity => {
@@ -1094,7 +1089,6 @@
                         break;
                     }
                 }
-
                 // If it's further than 10m from all known stores, it's a new location
                 if (!belongsToExistingStore) {
                     stores.push({ lat: activity.lat, lon: activity.lon });
@@ -1107,30 +1101,30 @@
 				// Initialize tracking for this age group if it doesn't exist
                 if (!demographicAnalysis[age]) {
                     demographicAnalysis[age] = {
-                        behaviors: { 'Returning': 0, 'Browsing': 0, 'Purchasing': 0 },
                         items: {} // tracks behavior counts per item
                     };
                 }
 
                 // Interactions for Conversion Rate/Key Demographics
                 activity.interactions.forEach(interaction => {
-                    totalInteractions++;
-                    if (interaction.type === 'Purchasing') {
-                        purchaseCount++;
-                    const type = inter.type;
-                    const item = inter.item;
-                    const category = inter.category;
-					// Increment behavior totals for this demographic
-                    demographicAnalysis[age].behaviors[type] = (demographicAnalysis[age].behaviors[type] || 0) + 1;
-				    // Increment item-specific counts for this demographic
-                    if (!demographicAnalysis[age].items[item]) {
-                        demographicAnalysis[age].items[item] = { 
+                    totalInteractions++;                
+                    const type = interaction.type;
+                    const item = interaction.item;
+                    const category =interaction.category;
+
+					if (type === 'Purchasing') {
+						purchaseCount++;
+					}
+
+					// Increment item-specific counts for this demographic
+                    if (!demographicAnalysis[ageGroup].items[item]) {
+                        demographicAnalysis[ageGroup].items[item] = { 
                             counts: { 'Returning': 0, 'Browsing': 0, 'Purchasing': 0 }, 
                             category: category 
                         };
                     }
-                    demographicAnalysis[age].items[item].counts[type]++;	
-				});
+                    demographicAnalysis[ageGroup].items[item].counts[type]++;    
+                });
             });
 
             // Calculate Metrics
@@ -1178,8 +1172,8 @@
 					// We sort behaviors by count to find the winner for this item
                     keyInteraction = Object.keys(itemBehaviors).reduce((a, b) => 
                         itemBehaviors[a] >= itemBehaviors[b] ? a : b
-                    }
-                });
+                    );
+                }
             }
 			
             return {
