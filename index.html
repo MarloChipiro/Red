@@ -1221,8 +1221,7 @@
             } 
         }
         // ---- INITIALIZATION AND EVENT LISTENERS ----
-        documen
-t.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function() {
 		    updateBackground(); // Show first image immediately
 			setInterval(updateBackground, 8000); // Change every 8 seconds
 			
@@ -1238,6 +1237,7 @@ t.addEventListener('DOMContentLoaded', function() {
             } else {
                 document.getElementById('authModal').classList.remove('hidden');
             }
+
             document.getElementById('authForm').addEventListener('submit', async function(e) {
                 e.preventDefault();
                 const username = document.getElementById('username').value;
