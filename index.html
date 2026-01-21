@@ -1080,6 +1080,8 @@
 			const stores = []; // Array to hold unique store centers [lat, lon]
 			const DISTANCE_THRESHOLD = 10; // 10 meters
 
+			const demographicAnalysis = {};
+
             // Pass 1: Gather raw numbers for metrics and demographics
             activityData.forEach(activity => {
                 totalConsumers += activity.count;
@@ -1102,16 +1104,32 @@
                 const ageGroup = activity.age; // Assuming 'age' is a string like '25-34'
                 ageCounts[ageGroup] = (ageCounts[ageGroup] || 0) + activity.count;
 
+				// Initialize tracking for this age group if it doesn't exist
+                if (!demographicAnalysis[age]) {
+                    demographicAnalysis[age] = {
+                        behaviors: { 'Returning': 0, 'Browsing': 0, 'Purchasing': 0 },
+                        items: {} // tracks behavior counts per item
+                    };
+                }
+
                 // Interactions for Conversion Rate/Key Demographics
                 activity.interactions.forEach(interaction => {
                     totalInteractions++;
                     if (interaction.type === 'Purchasing') {
                         purchaseCount++;
+                    const type = inter.type;
+                    const item = inter.item;
+                    const category = inter.category;
+					// Increment behavior totals for this demographic
+                    demographicAnalysis[age].behaviors[type] = (demographicAnalysis[age].behaviors[type] || 0) + 1;
+				    // Increment item-specific counts for this demographic
+                    if (!demographicAnalysis[age].items[item]) {
+                        demographicAnalysis[age].items[item] = { 
+                            counts: { 'Returning': 0, 'Browsing': 0, 'Purchasing': 0 }, 
+                            category: category 
+                        };
                     }
-                    interactionCounts[interaction.type] = (interactionCounts[interaction.type] || 0) + 1;
-                    categoryCounts[interaction.category] = (categoryCounts[interaction.category] || 0) + 1;
-                
-				    itemNameCounts[interaction.item] = (itemNameCounts[interaction.item] || 0) + 1;
+                    demographicAnalysis[age].items[item].counts[type]++;	
 				});
             });
 
@@ -1127,11 +1145,42 @@
                 count: ageCounts[age_group]
             })).sort((a, b) => b.count - a.count);
 
-            // Calculate Recommendations (Target Demographic/Interaction)
+            // --- INTELLIGENT RECOMMENDATION LOGIC ---
             let targetAgeGroup = demographics.length > 0 ? demographics[0].age_group : 'N/A';
-            let keyInteraction = Object.keys(interactionCounts).sort((a, b) => interactionCounts[b] - interactionCounts[a])[0] || 'N/A';
-            let keyCategory = Object.keys(categoryCounts).sort((a, b) => categoryCounts[b] - categoryCounts[a])[0] || 'N/A';
-            let keyItem = Object.keys(itemNameCounts).sort((a, b) => itemNameCounts[b] - itemNameCounts[a])[0] || 'N/A';
+            let keyInteraction = 'N/A';
+            let keyItem = 'N/A';
+            let keyCategory = 'N/A';
+			
+			if (targetAgeGroup !== 'N/A' && demographicAnalysis[targetAgeGroup]) {
+                const stats = demographicAnalysis[targetAgeGroup];
+
+				// 1. Find the Item with the highest OVERALL interaction count
+                let maxOverallInteraction = -1;
+                let bestItemName = null;
+
+                Object.entries(stats.items).forEach(([itemName, data]) => {
+                    // Sum all behaviors for this item
+                    const totalItemInteractions = Object.values(data.counts).reduce((a, b) => a + b, 0);
+					
+					if (totalItemInteractions > maxOverallInteraction) {
+                        maxOverallInteraction = totalItemInteractions;
+                        bestItemName = itemName;
+                    }
+                });
+
+				if (bestItemName) {
+                    keyItem = bestItemName;
+                    keyCategory = stats.items[bestItemName].category;
+
+					// 2. Find the behavior most associated with THIS specific item
+                    const itemBehaviors = stats.items[bestItemName].counts;
+
+					// We sort behaviors by count to find the winner for this item
+                    keyInteraction = Object.keys(itemBehaviors).reduce((a, b) => 
+                        itemBehaviors[a] >= itemBehaviors[b] ? a : b
+                    }
+                });
+            }
 			
             return {
                 dashboardMetrics: { totalConsumers, activeLocations, conversionRate },
