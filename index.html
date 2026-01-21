@@ -709,7 +709,7 @@
                 attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
             }).addTo(map);
 
-			const markersClusterGroup = L.markerClusterGroup({
+			const clusterLayers = L.clusterLayers({
 			    showCoverageOnHover: false,
                 zoomToBoundsOnClick: true, // Click to zoom into a cluster
                 spiderfyOnMaxZoom: true,   // If multiple points are at the exact same spot, fan them out
@@ -718,7 +718,7 @@
                 disableClusteringAtZoom: 18 // Optional: stops clustering when very zoomed in
             });
 			
-			map.addLayer(markersClusterGroup);
+			map.addLayer(clusterLayers);
 			let heatLayer = L.heatLayer([], { radius: 25, blur: 15, maxZoom: 17 }).addTo(map);
 			map.on('locationfound', (e) => {
 			    const btnText = document.getElementById('locateBtnText');
