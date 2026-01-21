@@ -708,18 +708,7 @@
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                 attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
             }).addTo(map);
-
-			const clusterLayers = L.clusterLayers({
-			    showCoverageOnHover: false,
-                zoomToBoundsOnClick: true, // Click to zoom into a cluster
-                spiderfyOnMaxZoom: true,   // If multiple points are at the exact same spot, fan them out
-                removeOutsideVisibleBounds: true,
-                animate: true,
-                disableClusteringAtZoom: 18 // Optional: stops clustering when very zoomed in
-            });
 			
-			map.addLayer(clusterLayers);
-			let heatLayer = L.heatLayer([], { radius: 25, blur: 15, maxZoom: 17 }).addTo(map);
 			map.on('locationfound', (e) => {
 			    const btnText = document.getElementById('locateBtnText');
                 btnText.innerText = "Location Found!";
