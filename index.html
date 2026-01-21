@@ -1043,24 +1043,49 @@
         }
 
 // ---- DATA AND METRICS CALCULATOR ----
-        
+
+		function getDistance(lat1, lon1, lat2, lon2) {
+            const R = 6371e3; // Earth's radius in meters
+            const dLat = (lat2 - lat1) * Math.PI / 180;
+            const dLon = (lon2 - lon1) * Math.PI / 180;
+            const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                      Math.sin(dLon / 2) * Math.sin(dLon / 2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+            return R * c; 
+        }
         // NEW FUNCTION: Calculates all metrics, demographics, and recommendations client-side
         // This ensures the dashboard reflects ONLY the data present in the provided activity array.
         function calculateClientSideStats(activityData) {
-            let totalConsumers = 0;
-            const locations = new Set();
-            const ageCounts = {};
+            let totalConsumers = 0;       
             let totalInteractions = 0;
             let purchaseCount = 0;
-            let interactionCounts = {};
-            let categoryCounts = {};
-			let itemNameCounts = {};
+			const ageCounts = {};
+            const interactionCounts = {};
+            const categoryCounts = {};
+			const itemNameCounts = {};
+
+			const stores = []; // Array to hold unique store centers [lat, lon]
+			const DISTANCE_THRESHOLD = 10; // 10 meters
 
             // Pass 1: Gather raw numbers for metrics and demographics
             activityData.forEach(activity => {
                 totalConsumers += activity.count;
-                locations.add(`${activity.lat},${activity.lon}`);
 
+				// Check if this point belongs to an existing store
+                let belongsToExistingStore = false;
+                for (let store of stores) {
+                    if (getDistance(activity.lat, activity.lon, store.lat, store.lon) <= DISTANCE_THRESHOLD) {
+                        belongsToExistingStore = true;
+                        break;
+                    }
+                }
+
+                // If it's further than 10m from all known stores, it's a new location
+                if (!belongsToExistingStore) {
+                    stores.push({ lat: activity.lat, lon: activity.lon });
+                }
+				
                 // Demographics
                 const ageGroup = activity.age; // Assuming 'age' is a string like '25-34'
                 ageCounts[ageGroup] = (ageCounts[ageGroup] || 0) + activity.count;
@@ -1079,7 +1104,7 @@
             });
 
             // Calculate Metrics
-            const activeLocations = locations.size;
+            const activeLocations = stores.length;
             const conversionRate = totalInteractions > 0 
                 ? ((purchaseCount / totalInteractions) * 100).toFixed(1) + '%'
                 : '0%';
