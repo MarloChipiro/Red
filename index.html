@@ -1051,7 +1051,7 @@
 		}	
 
 		// ---- DATA AND METRICS CALCULATOR ----
-		function getDistance(lat1, lon1, lat2, lon2) {
+		function calculateDistance(lat1, lon1, lat2, lon2) {
             const R = 6371000; // Earth radius in meters
             const dLat = (lat2 - lat1) * Math.PI / 180;
             const dLon = (lon2 - lon1) * Math.PI / 180;
@@ -1081,7 +1081,7 @@
 			// 2. CALCULATE 10m CLUSTERED LOCATIONS LOCALLY
             // We use data.activity (the raw list of points) to recalculate the count
             const clusteredCount = getClusteredLocationCount(data.activity, 10);
-            document.getElementById('activeLocations').textContent = data.dashboardMetrics.activeLocations;
+            document.getElementById('activeLocations').textContent = clusteredCount;
             document.getElementById('conversionRate').textContent = data.dashboardMetrics.conversionRate;
 
             updateHourlyChart(data.activity);
