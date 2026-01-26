@@ -1263,9 +1263,9 @@
             const newActivity = {
 			    date: document.getElementById('activityDate').value,
                 time: document.getElementById('activityTime').value,
-                lat: lat,
-                lon: lon,
-                count: parseInt(document.getElementById('activityCount').value),
+                lat: parseFloat(document.getElementById('activityLat').value), // FIX: convert to number
+                lon: parseFloat(document.getElementById('activityLon').value), // FIX: convert to number
+                count: parseInt(document.getElementById('activityCount').value), || 1,
 				gender: document.getElementById('activityGender').value,
                 age: document.getElementById('activityAge').value,  				
                 interactions: interactions 
