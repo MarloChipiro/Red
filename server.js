@@ -46,6 +46,7 @@ const User = mongoose.model('User', userSchema);
     lat: Number,       // Location Latitude
     lon: Number,       // Location Longitude
     count: Number,     // Consumer Count
+	gender: String,
     age: String,       // Age Group
     // New nested structure for multi-item interactions
     interactions: [{
@@ -131,7 +132,7 @@ function convertToCsv(data) {
 
     // Define headers for the flattened data structure
     const headers = [
-        'Activity ID', 'Date','Time', 'Latitude', 'Longitude', 'Consumer Count', 'Age Group', 
+        'Activity ID', 'Date','Time', 'Latitude', 'Longitude', 'Consumer Count','Gender', 'Age Group', 
         'Behavior Type', 'Item Name', 'Item Category'
     ];
     const csvRows = [];
@@ -148,6 +149,7 @@ function convertToCsv(data) {
             row.lat || 'N/A',
             row.lon || 'N/A',
             row.count || 'N/A',
+			row.gender || 'N/A',
             row.age || 'N/A',
             row.interaction_type || 'N/A',   // Use the flattened field names
             row.interaction_item || 'N/A',
@@ -364,6 +366,7 @@ app.get('/api/activity/csv', authenticateToken, async (req, res) => {
                     lat: activity.lat,
                     lon: activity.lon,
                     count: activity.count,
+					gender: activity.gender || 'N/A',
                     age: activity.age,
                     interaction_type: interaction.type,
                     interaction_item: interaction.item,
