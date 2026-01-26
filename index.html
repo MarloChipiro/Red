@@ -1066,7 +1066,7 @@
             const clusters = [];
             activities.forEach(activity => {
                 // Check if this point is within 10m of any group we already counted
-                const isNear = clusters.some(c => calculateDistance(activity.lat, activity.lon, c.lat, c.lon) <= threshold);
+                const isNear = clusters.some(c => calculateDistance(activity.lat, activity.lon, c.lat, c.lon) <= 10);
                 if (!isNear) {
                     clusters.push({ lat: activity.lat, lon: activity.lon });
                 }
@@ -1114,7 +1114,7 @@
 				// Check if this point belongs to an existing store
                 let belongsToExistingStore = false;
                 for (let store of stores) {
-                    if (getDistance(activity.lat, activity.lon, store.lat, store.lon) <= DISTANCE_THRESHOLD) {
+                    if (calculateDistance(activity.lat, activity.lon, store.lat, store.lon) <= 10) {
                         belongsToExistingStore = true;
                         break;
                     }
