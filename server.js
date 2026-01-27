@@ -397,7 +397,7 @@ app.get('/sw.js', (req, res) => {
 });
 
 // The catch-all route for the frontend (Express 5 compatible)
-app.get('/:path*', (req, res) => {
+app.get(/^(?!\/api).+/, (req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));
 });
 
