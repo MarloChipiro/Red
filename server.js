@@ -17,6 +17,9 @@ app.use(cors());
 app.use(bodyParser.json());
 
 app.use(express.static(__dirname));
+// Ensure correct MIME types for PWA files
+express.static.mime.define({'application/manifest+json': ['json']});
+express.static.mime.define({'application/javascript': ['js']});
 
 // =======================================================
 // DATABASE CONNECTION
@@ -388,7 +391,17 @@ app.get('/api/activity/csv', authenticateToken, async (req, res) => {
     }
 });
 
-app.use((req, res) => {
+// Serve specific PWA files explicitly
+app.get('/manifest.json', (req, res) => {
+    res.sendFile(path.join(__dirname, 'manifest.json'));
+});
+
+app.get('/sw.js', (req, res) => {
+    res.sendFile(path.join(__dirname, 'sw.js'));
+});
+
+// The catch-all route for the frontend
+app.get('*', (req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));
 });
 
