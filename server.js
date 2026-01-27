@@ -17,10 +17,6 @@ app.use(cors());
 app.use(bodyParser.json());
 
 app.use(express.static(__dirname));
-// Ensure correct MIME types for PWA files
-express.static.mime.define({'application/manifest+json': ['json']});
-express.static.mime.define({'application/javascript': ['js']});
-
 // =======================================================
 // DATABASE CONNECTION
 // =======================================================
