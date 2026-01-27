@@ -27,7 +27,14 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.css" />
     <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.Default.css" />
     <script src="https://unpkg.com/leaflet.markercluster@1.4.1/dist/leaflet.markercluster.js"></script>
-    <link rel="stylesheet" href="style.css">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#5D5CDE">
+
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="BehaviorTracker">
+    <link rel="apple-touch-icon" href="icon-192.png">
+	<link rel="stylesheet" href="style.css">
 	
     
     <style>
@@ -123,7 +130,20 @@
 <body class="bg-transparent font-sans leading-normal tracking-normal text-gray-800 dark:text-gray-200">
     <div id="slideshow-bg" class="fixed inset-0 -z-20 bg-cover bg-center transition-all duration-1000 ease-in-out"></div>
     <div class="fixed inset-0 -z-10 bg-white/40 dark:bg-gray-900/60"></div>
-
+    
+	<div id="install-banner" class="fixed bottom-0 left-0 right-0 bg-primary text-white p-4 flex justify-between items-center transform translate-y-full transition-transform duration-300 z-[9999] shadow-lg">
+        <div class="flex items-center">
+            <img src="icon-192.png" alt="App Icon" class="w-12 h-12 rounded-lg mr-3">
+            <div>
+                <p class="font-bold">Install Behavior Tracker</p>
+                <p class="text-xs text-blue-100">Access insights faster from your home screen</p>
+            </div>
+        </div>
+        <div class="flex gap-2">
+            <button id="close-banner" class="px-3 py-2 text-sm">Maybe Later</button>
+            <button id="install-button" class="bg-white text-primary px-4 py-2 rounded-lg font-bold text-sm">Install</button>
+        </div>
+    </div>
     <!-- Login/Register Modal -->
     <div id="authModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex items-center justify-center z-50">
         <div class="relative p-8 bg-white dark:bg-gray-800 w-96 rounded-lg shadow-xl">
@@ -1437,6 +1457,43 @@
                 showMessage("Export failed. Please check if the server is running.", true);
             }
         });
+		let deferredPrompt;
+        const installBanner = document.getElementById('install-banner');
+        const installBtn = document.getElementById('install-button');
+        const closeBtn = document.getElementById('close-banner');
+		
+		window.addEventListener('beforeinstallprompt', (e) => {
+            // Prevent Chrome 67 and earlier from automatically showing the prompt
+            e.preventDefault();
+            // Stash the event so it can be triggered later.
+            deferredPrompt = e;
+            // Show the custom install banner
+            installBanner.classList.remove('translate-y-full');
+        });
+		installBtn.addEventListener('click', async () => {
+            if (deferredPrompt) {
+                // Show the native install prompt
+                deferredPrompt.prompt();
+                // Wait for the user to respond to the prompt
+                const { outcome } = await deferredPrompt.userChoice;
+                console.log(`User response to install prompt: ${outcome}`);
+                // We've used the prompt, and can't use it again
+                deferredPrompt = null;
+                // Hide our banner
+                installBanner.classList.add('translate-y-full');
+            }
+        });
+		
+		closeBtn.addEventListener('click', () => {
+            installBanner.classList.add('translate-y-full');
+        });
+		if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js')
+                    .then(reg => console.log('Service Worker registered!'))
+                    .catch(err => console.error('Registration failed:', err));
+            });
+        }
     });
     </script>
 </body>
