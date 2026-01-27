@@ -2,9 +2,9 @@ const CACHE_NAME = 'behavior-tracker-v1';
 const ASSETS = [
   '/',
   '/index.html',
+  '/manifest.json',
   '/icon-192.png',
   '/icon-512.png'
-  '/manifest.json'
 ];
 
 self.addEventListener('install', (event) => {
@@ -18,4 +18,5 @@ self.addEventListener('fetch', (event) => {
     caches.match(event.request).then((response) => response || fetch(event.request))
   );
 });
+
 
