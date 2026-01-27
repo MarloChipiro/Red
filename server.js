@@ -396,8 +396,8 @@ app.get('/sw.js', (req, res) => {
     res.sendFile(path.join(__dirname, 'sw.js'));
 });
 
-// The catch-all route for the frontend
-app.get('(.*)', (req, res) => {
+// The catch-all route for the frontend (Express 5 compatible)
+app.get('/:path*', (req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));
 });
 
