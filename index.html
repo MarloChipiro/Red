@@ -1238,7 +1238,19 @@
                 console.error('Failed to fetch dashboard data:', error);
             }
         }
- 
+
+		function handleSuccessfulSubmit(newActivity, lat, lon, form) {
+            localActivityData.activity.push(newActivity); 
+            const updatedStats = calculateClientSideStats(localActivityData.activity);
+            Object.assign(localActivityData, updatedStats);
+            updateDashboardDisplay(localActivityData);
+
+            closeActivityModal();
+            form.reset();
+            document.getElementById('interaction-inputs').innerHTML = '';
+            addInteractionField(); 
+            if (!isNaN(lat) && !isNaN(lon)) map.flyTo([lat, lon], 15);
+        }
         async function submitActivityData(e) {
             e.preventDefault();
             const form = document.getElementById('activityForm');
@@ -1283,29 +1295,24 @@
                 interactions: interactions 
             };
 
-            try {
-                const response = await fetchWithAuth('/api/activity', {
-                    method: 'POST',
-                    body: JSON.stringify(newActivity)
-                });
-        
-                if (response.ok) {
-                    // Update local state and dashboard
-                    localActivityData.activity.push(newActivity); 
-                    const updatedStats = calculateClientSideStats(localActivityData.activity);
-                    Object.assign(localActivityData, updatedStats);
-                    updateDashboardDisplay(localActivityData);
-            
-                    // UI Cleanup
-                    closeActivityModal();
-                    form.reset();
-                    document.getElementById('interaction-inputs').innerHTML = '';
-                    addInteractionField(); 
-                    if (!isNaN(lat) && !isNaN(lon)) map.flyTo([lat, lon], 15);
+            if (navigator.onLine) {
+                try {
+                    const response = await fetchWithAuth('/api/activity', {
+                        method: 'POST',
+                        body: JSON.stringify(newActivity)
+                    });
+
+                    if (response.ok) {
+                        handleSuccessfulSubmit(newActivity, lat, lon, form);
+                    }
+                } catch (error) {
+                    saveObservationLocally(newActivity);
+                    handleSuccessfulSubmit(newActivity, lat, lon, form); // Clean UI anyway
                 }
-            } catch (error) {
-                console.error('Error adding activity:', error);
-            } 
+            } else {
+                saveObservationLocally(newActivity);
+                handleSuccessfulSubmit(newActivity, lat, lon, form);
+            }
         }
         // ---- INITIALIZATION AND EVENT LISTENERS ----
         document.addEventListener('DOMContentLoaded', function() {
@@ -1489,14 +1496,78 @@
 		closeBtn.addEventListener('click', () => {
             installBanner.classList.add('translate-y-full');
         });
-		if ('serviceWorker' in navigator) {
+
+        if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('/sw.js')
                     .then(reg => console.log('Service Worker registered!'))
                     .catch(err => console.error('Registration failed:', err));
-            });
+            });     
         }
-    });
+
+        // 1. Open/Create the Database
+        let db;
+        const request = indexedDB.open('CBT_Offline_DB', 1);
+
+        request.onupgradeneeded = (e) => {
+            db = e.target.result;
+            db.createObjectStore('observations', { autoIncrement: true });
+        };
+
+        request.onsuccess = (e) => {
+            db = e.target.result;
+            console.log("Local Database Ready");
+        };
+
+        // 2. Function to save data locally when offline
+        function saveObservationLocally(data) {
+            if (!db) return; 
+            const transaction = db.transaction(['observations'], 'readwrite');
+            const store = transaction.objectStore('observations');
+            store.add(data);
+            alert("Connection lost. Data saved to phone memory. It will sync automatically when online!");
+        }
+
+		// The main submission logic
+        async function handleSubmission(observationData) {
+            if (navigator.onLine) {
+                try {
+                    const response = await fetch('/api/save', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' }, // Added headers for safety
+                        body: JSON.stringify(observationData)
+                    });
+                    if (response.ok) alert("Data synced to server!");
+                } catch (err) {
+                    saveObservationLocally(observationData);
+                }
+            } else {
+                saveObservationLocally(observationData);
+            }
+        }
+        // 3. Automatic Sync when connection returns
+        window.addEventListener('online', () => {
+            const transaction = db.transaction(['observations'], 'readwrite');
+            const store = transaction.objectStore('observations');
+            const getAll = store.getAll();
+
+            getAll.onsuccess = () => {
+                if (getAll.result.length > 0) {
+                    console.log("Syncing " + getAll.result.length + " items...");
+                    // This assumes your main submission logic is in a function called 'submitData'
+                    getAll.result.forEach(item => {
+                        // Resend each saved item to your server
+                        fetch('/api/save', { // Replace with your actual URL
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(item)
+                        });
+                    });
+                    store.clear(); // Clear the phone memory after successful sync
+                    alert("Success! Offline data has been synced to the server.");
+                }
+            };
+        });
     </script>
 </body>
 </html>
