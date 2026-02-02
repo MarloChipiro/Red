@@ -162,20 +162,9 @@
                     <button type="submit" id="loginBtn" class="w-full py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-600">Login</button>
                 </div>
             </form>	
-			<hr class="my-6 border-gray-200 dark:border-gray-700">
-
-            <div class="text-xs text-gray-500 dark:text-gray-400 space-y-2">
-                <h4 class="font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">About Consumer Behavior Tracker</h4>
-                <p>
-                    The <strong>Consumer Behavior Tracker</strong> is an advanced analytics platform designed to monitor real-time consumer interactions. 
-                    Businesses use our <strong>behavior tracking</strong> tools to visualize foot traffic, analyze demographic patterns, and 
-                    optimize store performance through data-driven insights.
-                </p>
-                <p>
-                    Track <strong>consumer activity</strong>, manage inventory based on buying behaviors, and generate comprehensive reports 
-                    to improve customer engagement and conversion rates.
-                </p>
-            </div>
+			<p class="mt-4 text-center text-xs text-gray-500 dark:text-gray-400">
+                Please register before login unless you have an account already!
+            </p>
             <p id="authMessage" class="mt-4 text-center text-sm font-medium"></p>
         </div>
     </div>
@@ -404,7 +393,28 @@
             </form>
         </div>
     </div>
-	
+	<div class="fixed bottom-4 left-4 z-[2000]">
+        <button id="openAbout" class="bg-white/80 backdrop-blur-md hover:bg-white text-primary text-xs font-semibold py-1 px-3 rounded-full shadow-lg border border-gray-200 transition-all">
+            <i class="fas fa-info-circle mr-1"></i> About Us
+        </button>
+    </div>
+
+    <div id="aboutModal" class="fixed inset-0 z-[3000] hidden flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+        <div class="bg-white dark:bg-gray-800 rounded-xl max-w-lg w-full p-6 shadow-2xl">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-xl font-bold text-gray-900 dark:text-white">About Consumer Behavior Tracker</h3>
+                <button id="closeAbout" class="text-gray-500 hover:text-gray-700 dark:text-gray-400">&times;</button>
+            </div>
+            <div class="text-gray-600 dark:text-gray-300 space-y-3">
+                <p>Our Retail Analytics & Insights platform is designed to help businesses visualize consumer foot traffic, analyze shopping patterns, and optimize store layouts using real-time heatmaps and demographic data.</p>
+                <p>By leveraging advanced data visualization, we turn complex retail metrics into actionable insights to improve customer experience and drive sales growth.</p>
+            </div>
+            <button id="closeAboutBtn" class="mt-6 w-full bg-primary text-white py-2 rounded-lg hover:bg-primary-dark transition-colors">
+                Got it!
+            </button>
+        </div>
+    </div>
+
     <script> 
 	    const groceryData = {
             "Fruits": ["Apples", "Grapes", "Oranges", "Avocados", "Peaches", "Pineapple", "Pears", "Apricots", "Bananas", "Berries", "Cherries", "Kiwi", "Lemons", "Limes", "Melons", "Nectarines", "Papaya", "Plums", "Pomegranate", "Watermelon"],
@@ -1496,7 +1506,21 @@
                     .catch(err => console.error('Registration failed:', err));
             });
         }
-    });
+	    const openAbout = document.getElementById('openAbout');
+        const closeAbout = document.getElementById('closeAbout');
+        const closeAboutBtn = document.getElementById('closeAboutBtn');
+        const aboutModal = document.getElementById('aboutModal');
+
+        const toggleAbout = () => aboutModal.classList.toggle('hidden');
+
+        openAbout.addEventListener('click', toggleAbout);
+        closeAbout.addEventListener('click', toggleAbout);
+        closeAboutBtn.addEventListener('click', toggleAbout);
+
+		// Close if user clicks the dark background outside the box
+        window.addEventListener('click', (e) => {
+            if (e.target === aboutModal) toggleAbout();
+        });	
     </script>
 </body>
 </html>
