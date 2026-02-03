@@ -27,13 +27,6 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.css" />
     <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.Default.css" />
     <script src="https://unpkg.com/leaflet.markercluster@1.4.1/dist/leaflet.markercluster.js"></script>
-    <script type="importmap">
-      {
-        "imports": {
-          "@google/generative-ai": "https://esm.run/@google/generative-ai"
-        }
-      }
-    </script>
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#5D5CDE">
 
@@ -421,8 +414,7 @@
             </button>
         </div>
     </div>
-    <script type="module">
-		import { GoogleGenerativeAI } from "@google/generative-ai";
+    <script> 
 	    const groceryData = {
             "Fruits": ["Apples", "Grapes", "Oranges", "Avocados", "Peaches", "Pineapple", "Pears", "Apricots", "Bananas", "Berries", "Cherries", "Kiwi", "Lemons", "Limes", "Melons", "Nectarines", "Papaya", "Plums", "Pomegranate", "Watermelon"],
             "Vegetables": ["Potatoes", "Tomatoes", "Onions", "Carrots", "Lettuce", "Broccoli", "Peppers", "Garlic", "Broccoli", "Cauliflower", "Eggplant", "Cucumbers", "Corn", "Spinach", "Salad Greens","Artichokes", "Basil", "Beets", "Cabbage", "Sprouts", "Peppers", "Zucchini"],
@@ -457,10 +449,6 @@
             "https://images.unsplash.com/photo-1543168256-418811576931?auto=format&fit=crop&q=80&w=1920",
 			"https://images.unsplash.com/photo-1583258292688-d0213dc5a3a8?auto=format&fit=crop&q=90&w=1920"
 		];
-		
-		const API_KEY = "AIzaSyBrR-7K80GY__2how-e9wR8ILxxat28Fi4"; 
-        const genAI = new GoogleGenerativeAI(API_KEY);
-        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 		
 		let currentImgIndex = 0;		
         // Store charts, map, and heatmap layers instance globally for updates
@@ -993,26 +981,8 @@
             }
         }
         // Inside copy7-auth.html, add this new function:
-        async function generateAIInsights(stats, demographicData) {
-			const outputContainer = document.getElementById('targetDemographicsOutput');
-            outputContainer.innerHTML = '<p class="text-blue-500 animate-pulse text-xs">AI analyzing patterns...</p>';          
 
-            try {
-				const prompt = `You are a retail expert. Data: Consumers: ${stats.totalConsumers}, Purchases: ${stats.purchaseCount}, Rate: ${stats.conversionRate}. Give ONE specific 2-sentence business tip.`;
-				const result = await model.generateContent(prompt);
-                const text = result.response.text();
-                outputContainer.innerHTML = `
-				    <div class="bg-indigo-50 dark:bg-indigo-900/30 p-3 rounded-lg border-l-4 border-primary">
-                        <p class="text-sm text-gray-700 dark:text-gray-200 font-medium italic">"${text}"</p>
-                    </div>`;
-			} catch (error) {
-				// --- THIS IS THE FALLBACK ---
-                updateTargetDemographics(demographicData);
-			}
-		}	
-		
-		function updateTargetDemographics(demographics) {
-			outputDiv.innerHTML = '<span class="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Standard Insight</span>';
+        function updateTargetDemographics(demographics) {
             const outputDiv = document.getElementById('targetDemographicsOutput');
             // Deconstruct the new keyItem field
             const { targetAgeGroup, keyInteraction, keyCategory, keyItem } = demographics;
@@ -1045,7 +1015,6 @@
 
             outputDiv.innerHTML = recommendation;
         }
-		    
 		function clearDashboardDisplay() {
             // 1. Reset Metrics to 0/N/A
             document.getElementById('totalConsumers').textContent = '0';
@@ -1222,22 +1191,7 @@
             let keyCategory = Object.keys(categoryCounts).sort((a, b) => categoryCounts[b] - categoryCounts[a])[0] || 'N/A';
             let keyItem = Object.keys(itemNameCounts).sort((a, b) => itemNameCounts[b] - itemNameCounts[a])[0] || 'N/A';
 			
-			document.getElementById('totalConsumers').textContent = totalConsumers;
-            document.getElementById('conversionRate').textContent = conversionRate;
-
-			const currentStats = {
-				totalConsumers: totalConsumers,
-                purchaseCount: purchaseCount, 
-                conversionRate: conversionRate
-			};
-			
-			//This object is what the fallback uses if the AI fails
-            const targetKeyDemographics = { targetAgeGroup, keyInteraction, keyCategory, keyItem };
-
-			// Call the AI to update the Recommendation Card
-            generateAIInsights(currentStats, targetKeyDemographics);
-
-			 return {
+            return {
                 dashboardMetrics: { totalConsumers, activeLocations, conversionRate },
                 demographics: demographics,
                 targetKeyDemographics: { targetAgeGroup, keyInteraction, keyCategory, keyItem }
@@ -1560,16 +1514,6 @@
         window.addEventListener('click', (e) => {
             if (e.target === aboutModal) toggleAbout();
 		});
-
-		// EXPOSE FUNCTIONS TO HTML
-        window.locateUser = locateUser;
-        window.closeActivityModal = closeActivityModal;
-        window.applyDateFilter = applyDateFilter;
-        window.resetDateFilter = resetDateFilter;
-        window.logout = logout; 
-        window.addInteractionField = addInteractionField;
-        window.removeInteractionField = removeInteractionField;
-        window.toggleAbout = toggleAbout; // Add this since you have an About Us modal
 			
 		if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
