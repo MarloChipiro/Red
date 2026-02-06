@@ -132,8 +132,9 @@
                 Consumer <span class="text-yellow-400">Dashboard</span>
             </h1>
         </header>
-    </div>
-	<div id="install-banner" class="fixed bottom-0 left-0 right-0 bg-primary text-white p-4 flex justify-between items-center transform translate-y-full transition-transform duration-300 z-[9999] shadow-lg">
+		
+        </div>
+    <div id="install-banner" class="fixed bottom-0 left-0 right-0 bg-primary border-t border-white/20 shadow-[0_-4px_10px_rgba(0,0,0,0.3)] text-white p-4 flex justify-between items-center transform translate-y-full transition-transform duration-300 z-[9999]">
         <div class="flex items-center">
             <img src="icon-192.png" alt="App Icon" class="w-12 h-12 rounded-lg mr-3">
             <div>
@@ -1292,21 +1293,23 @@
         }
         // ---- INITIALIZATION AND EVENT LISTENERS ----
         document.addEventListener('DOMContentLoaded', function() {
-		    updateBackground(); // Show first image immediately
-			setInterval(updateBackground, 8000); // Change every 8 seconds
-			
             initCharts();
             initOverviewMap();
 
             const token = localStorage.getItem('token');
+			const dashboard = document.getElementById('dashboard');
+			const authModal = document.getElementById('authModal');
+			
             if (token) {
-                document.getElementById('authModal').classList.add('hidden');
-                document.getElementById('dashboard').classList.remove('hidden');
-                map.invalidateSize();
-                fetchDashboardData();
-            } else {
-                document.getElementById('authModal').classList.remove('hidden');
+                // SUCCESS: Show the dashboard, hide the login
+                dashboard.classList.remove('hidden'); 
+                if(authModal) authModal.classList.add('hidden');
+                loadDashboardData(); // Call your data function
+            } else {                
+                dashboard.classList.add('hidden');
+                if(authModal) authModal.classList.remove('hidden');
             }
+         });
 
             document.getElementById('authForm').addEventListener('submit', async function(e) {
                 e.preventDefault();
