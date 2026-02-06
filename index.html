@@ -101,17 +101,17 @@
             align-items: center;
             margin-bottom: 5px;
 		}	
-		body {
-            background-color: #f3f4f6; /* Light gray for Light Mode */
-        }
+		#slideshow-bg {
+            filter: brightness(0.9); /* 0.9 is much closer to the original photo clarity */
 
-        .dark body {
-            background-color: #111827; /* Deep Navy for Dark Mode */
-        }
-
-        /* Hide the slideshow container completely */
-        #slideshow-bg {
-            display: none;
+        /* Optional: add a subtle zoom effect */
+        .bg-zoom {
+            transform: scale(1.05);	
+	    #slideshow-bg {
+            background-color: #1a202c; /* A dark gray so it doesn't flash bright white */
+            background-size: cover;
+            background-position: center;
+			transition: background-image 1s ease-in-out; /* Smooth fade between images */
         }
 		#totalConsumers, #activeLocations, #conversionRate {
             text-shadow: 0px 2px 4px rgba(0, 0, 0, 0.2); /* Adds a subtle shadow behind the numbers */
@@ -127,7 +127,10 @@
         }
     </style>
 </head>
-<body class="bg-gray-100 dark:bg-gray-900 font-sans leading-normal tracking-normal text-gray-800 dark:text-gray-200">
+<body class="bg-transparent font-sans leading-normal tracking-normal text-gray-800 dark:text-gray-200">
+    <div id="slideshow-bg" class="fixed inset-0 -z-20 bg-cover bg-center transition-all duration-1000 ease-in-out"></div>
+    <div class="fixed inset-0 -z-10 bg-white/40 dark:bg-gray-900/60"></div>
+    
 	<div id="install-banner" class="fixed bottom-0 left-0 right-0 bg-primary text-white p-4 flex justify-between items-center transform translate-y-full transition-transform duration-300 z-[9999] shadow-lg">
         <div class="flex items-center">
             <img src="icon-192.png" alt="App Icon" class="w-12 h-12 rounded-lg mr-3">
@@ -136,7 +139,6 @@
                 <p class="text-xs text-blue-100">Access insights faster from your home screen</p>
             </div>
         </div>
-	    </div>
         <div class="flex gap-2">
             <button id="close-banner" class="px-3 py-2 text-sm">Maybe Later</button>
             <button id="install-button" class="bg-white text-primary px-4 py-2 rounded-lg font-bold text-sm">Install</button>
@@ -247,26 +249,6 @@
             </div>
         </section>
 
-		 <!-- Overview Map Card -->
-		<section class="mb-8">
-            <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md border border-gray-200 dark:border-gray-700">
-                <div class="flex justify-between items-center mb-4">
-                    <h2 class="text-xl font-bold">Overview Map</h2>
-                    <button id="toggleMapViewBtn" class="bg-primary/10 hover:bg-primary/20 text-primary dark:text-primary-dark py-1.5 px-3 rounded-md border border-primary/20 transition duration-300 text-xs font-bold uppercase tracking-wider">
-                        <i class="fas fa-layer-group mr-1"></i> Switch View
-                    </button>
-                </div>
-                
-                <div class="relative">
-                    <div id="map" class="map-container" style="height: 450px;"></div>
-                    
-                    <div id="mapLegend" class="map-legend dark:bg-gray-900 dark:text-white border border-gray-200 dark:border-gray-700">
-                        <h4 class="font-bold mb-2 border-b pb-1 text-xs">Item Category</h4>
-                        </div>
-                </div>
-            </div>
-        </section>
-
         <!-- Charts and Map Section -->
         <section class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
             <!-- Hourly Activity Chart -->
@@ -286,9 +268,10 @@
             </div>
         </section>
 
-		<!-- Recommendations card -->
-        <section class="mb-8">
-            <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md border border-gray-200 dark:border-gray-700 h-full">
+        <!-- Recommendations and Overview Map Section -->
+        <section class="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-8 items-start">
+            <!-- Recommendations Card -->
+            <div class="lg:col-span-5 bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md border border-gray-200 dark:border-gray-700 h-full">
                 <h2 class="text-xl font-bold mb-4 flex items-center">
                     <i class="fas fa-lightbulb text-yellow-500 mr-2"></i> Recommendations
                 </h2>
@@ -305,9 +288,26 @@
                     </div>
                 </div>
             </div>
-		</section>
 
-		<!-- Data Management Section -->
+            <!-- Overview Map Card -->
+            <div class="lg:col-span-7 bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md border border-gray-200 dark:border-gray-700">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-xl font-bold">Overview Map</h2>
+                    <button id="toggleMapViewBtn" class="bg-primary/10 hover:bg-primary/20 text-primary dark:text-primary-dark py-1.5 px-3 rounded-md border border-primary/20 transition duration-300 text-xs font-bold uppercase tracking-wider">
+                        <i class="fas fa-layer-group mr-1"></i> Switch View
+                    </button>
+                </div>
+                
+                <div class="relative">
+                    <div id="map" class="map-container" style="height: 450px;"></div>
+                    
+                    <div id="mapLegend" class="map-legend dark:bg-gray-900 dark:text-white border border-gray-200 dark:border-gray-700">
+                        <h4 class="font-bold mb-2 border-b pb-1 text-xs">Item Category</h4>
+                        </div>
+                </div>
+            </div>
+        </section>
+			 <!-- Data Management Section -->
         <section class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md border border-gray-200 dark:border-gray-700">
             <h2 class="text-xl font-bold mb-4">Data Management</h2>
             <div class="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4">              
@@ -440,7 +440,16 @@
             "Cereal": ["Corn Flakes", "Cerevita", "Oats", "Frosted Flakes", "Barley"],
 			"Kitchen Utensils": ["Pot", "Pan", "Spoons&Forks", "Cutlery", "Dish Towel"],
 		};
-				
+		
+		const groceryImages = [
+            "https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&q=90&w=1920", // 1. Main Aisle
+			"https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&q=80&w=1920",
+			"https://images.unsplash.com/photo-1583258292688-d0213dc5a3a8?auto=format&fit=crop&q=90&w=1920",  // Refrigerated
+            "https://images.unsplash.com/photo-1578916171728-46686eac8d58?auto=format&fit=crop&q=80&w=1920",
+            "https://images.unsplash.com/photo-1543168256-418811576931?auto=format&fit=crop&q=80&w=1920",
+			"https://images.unsplash.com/photo-1583258292688-d0213dc5a3a8?auto=format&fit=crop&q=90&w=1920"
+		];
+		
 		let currentImgIndex = 0;		
         // Store charts, map, and heatmap layers instance globally for updates
         let allActivityData = []; // <--- Master copy for filtering
@@ -450,6 +459,16 @@
         let currentMapMode = 'heatmap'; // 'heatmap' or 'cluster'
         const categoryColors = ['#5D5CDE', '#34D399', '#FBBF24', '#F87171', '#60A5FA', '#8B5CF6'];
 		
+		function updateBackground() {
+            const bgContainer = document.getElementById('slideshow-bg');
+            if (bgContainer && groceryImages.length > 0) {
+                // Change the image
+                bgContainer.style.backgroundImage = `url('${groceryImages[currentImgIndex]}')`;
+                
+                // Logic: Move to next image, or back to 0 if at the end of the list
+                currentImgIndex = (currentImgIndex + 1) % groceryImages.length;
+            }
+
     // CRITICAL NEW GLOBAL VARIABLE: Stores the data currently displayed (cleared on Refresh)
         let localActivityData = {
             activity: [],
@@ -740,15 +759,9 @@
                 document.getElementById('lon').value = e.latlng.lng.toFixed(6);
             
 			    map.flyTo(e.latlng, 16); 
-            });
-
-			setTimeout(() => {
-                   if (map) {
-                       map.invalidateSize();
-                       console.log("Map layout refreshed");
-                   }
-               }, 200);
-            }
+			
+			    setTimeout(() => { btnText.innerText = "Use My Exact Current Location"; }, 3000);
+        });
 		
 		map.on('locationerror', (e) => {
             alert("Could not access your location. Please check browser permissions.");
@@ -979,24 +992,24 @@
                 return;
             }
 
-            let recommendation = `<p class="mb-2 text-base text-gray-800">Your Primary Target Demographic is the ${targetAgeGroup} age group.</p>`;
+            let recommendation = `<p class="mb-2 text-base text-gray-800">Your **Primary Target Demographic** is the **${targetAgeGroup}** age group.</p>`;
     
             // Highlight the specific item instead of the category
-            recommendation += `<p class="mb-2 text-sm text-gray-700">The most popular specific product is ${keyItem}, often associated with ${keyInteraction} behavior.</p>`;
+            recommendation += `<p class="mb-2 text-sm text-gray-700">The most popular specific product is **${keyItem}**, often associated with **${keyInteraction}** behavior.</p>`;
 
             // Item-specific recommendations
             if (keyInteraction === 'Browsing') {
                 recommendation += `<p class="p-3 mt-4 text-sm bg-yellow-50 border border-yellow-200 rounded-md">
-                    <strong>💡 Recommendation:</strong> Many users in the ${targetAgeGroup} group are looking at ${keyItem} but not buying. Consider a "Bundle Deal" where purchasing ${keyItem} gives a discount on a related item in the ${keyCategory} category to seal the deal.
+                    <strong>💡 Recommendation:</strong> Many users in the **${targetAgeGroup}** group are looking at **${keyItem}** but not buying. Consider a "Bundle Deal" where purchasing **${keyItem}** gives a discount on a related item in the **${keyCategory}** category to seal the deal.
                 </p>`;
             } else if (keyInteraction === 'Purchasing') {
                 recommendation += `<p class="p-3 mt-4 text-sm bg-green-50 border border-green-200 rounded-md">
-                    <strong>💡 Recommendation:</strong> ${keyItem} is a top seller for ${targetAgeGroup}! Ensure high stock levels and consider placing high-margin items from the ${keyCategory} section right next to the ${keyItem} shelf to drive impulse buys.
+                    <strong>💡 Recommendation:</strong> **${keyItem}** is a top seller for **${targetAgeGroup}**! Ensure high stock levels and consider placing high-margin items from the **${keyCategory}** section right next to the **${keyItem}** shelf to drive impulse buys.
                 </p>
                 <p class="text-xs text-gray-500 mt-2">Inventory Alert: Check stock for "${keyItem}" immediately.</p>`;
             } else if (keyInteraction === 'Returning') {
                 recommendation += `<p class="p-3 mt-4 text-sm bg-red-50 border border-red-200 rounded-md">
-                    <strong>💡 Recommendation:</strong> There is a high return rate for ${keyItem} among the ${targetAgeGroup} demographic. Investigate if there is a quality batch issue specifically affecting ${keyItem}.
+                    <strong>💡 Recommendation:</strong> There is a high return rate for **${keyItem}** among the **${targetAgeGroup}** demographic. Investigate if there is a quality batch issue specifically affecting **${keyItem}**.
                 </p>`;
             }
 
@@ -1304,6 +1317,10 @@
             } 
         }
         // ---- INITIALIZATION AND EVENT LISTENERS ----
+        document.addEventListener('DOMContentLoaded', function() {
+		    updateBackground(); // Show first image immediately
+			setInterval(updateBackground, 8000); // Change every 8 seconds
+			
             initCharts();
             initOverviewMap();
 
@@ -1335,8 +1352,6 @@
                         localStorage.setItem('userId', result.userId);
                         document.getElementById('authModal').classList.add('hidden');
                         document.getElementById('dashboard').classList.remove('hidden');
-						initOverviewMap();
-						
                         setTimeout(() => {
 						    map.invalidateSize();
 							console.log("Map size recalculated");
