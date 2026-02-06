@@ -101,18 +101,6 @@
             align-items: center;
             margin-bottom: 5px;
 		}	
-		#slideshow-bg {
-            filter: brightness(0.9); /* 0.9 is much closer to the original photo clarity */
-
-        /* Optional: add a subtle zoom effect */
-        .bg-zoom {
-            transform: scale(1.05);	
-	    #slideshow-bg {
-            background-color: #1a202c; /* A dark gray so it doesn't flash bright white */
-            background-size: cover;
-            background-position: center;
-			transition: background-image 1s ease-in-out; /* Smooth fade between images */
-        }
 		#totalConsumers, #activeLocations, #conversionRate {
             text-shadow: 0px 2px 4px rgba(0, 0, 0, 0.2); /* Adds a subtle shadow behind the numbers */
             letter-spacing: -1px;
@@ -125,12 +113,27 @@
         header button:hover {
             box-shadow: 0 0 15px rgba(255, 255, 255, 0.2);
         }
+        body {
+            background-color: #1e293b; /* A solid, deep blue-gray (Tailwind's Slate-800) */
+            background-image: none !important; /* This removes any slideshow/images */
+        }
+        #dashboard {
+            background-color: transparent;
+        }
+        .dark body {
+            background-color: #0f172a; /* Darker navy for dark mode */
+        }
     </style>
 </head>
-<body class="bg-transparent font-sans leading-normal tracking-normal text-gray-800 dark:text-gray-200">
-    <div id="slideshow-bg" class="fixed inset-0 -z-20 bg-cover bg-center transition-all duration-1000 ease-in-out"></div>
-    <div class="fixed inset-0 -z-10 bg-white/40 dark:bg-gray-900/60"></div>
-    
+<body class="font-sans leading-normal tracking-normal text-gray-800 dark:text-gray-200">
+    <div id="dashboard" class="container mx-auto p-4">
+        <header class="flex flex-col sm:flex-row justify-between items-center py-4 px-6 mb-8 bg-white/5 backdrop-blur-md rounded-xl border border-white/10 shadow-lg">
+            <h1 class="text-3xl font-black text-white drop-shadow-md mb-4 sm:mb-0 tracking-tight">
+                Consumer <span class="text-yellow-400">Dashboard</span>
+            </h1>
+        </header>
+        
+        </div>
 	<div id="install-banner" class="fixed bottom-0 left-0 right-0 bg-primary text-white p-4 flex justify-between items-center transform translate-y-full transition-transform duration-300 z-[9999] shadow-lg">
         <div class="flex items-center">
             <img src="icon-192.png" alt="App Icon" class="w-12 h-12 rounded-lg mr-3">
@@ -440,17 +443,7 @@
             "Cereal": ["Corn Flakes", "Cerevita", "Oats", "Frosted Flakes", "Barley"],
 			"Kitchen Utensils": ["Pot", "Pan", "Spoons&Forks", "Cutlery", "Dish Towel"],
 		};
-		
-		const groceryImages = [
-            "https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&q=90&w=1920", // 1. Main Aisle
-			"https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&q=80&w=1920",
-			"https://images.unsplash.com/photo-1583258292688-d0213dc5a3a8?auto=format&fit=crop&q=90&w=1920",  // Refrigerated
-            "https://images.unsplash.com/photo-1578916171728-46686eac8d58?auto=format&fit=crop&q=80&w=1920",
-            "https://images.unsplash.com/photo-1543168256-418811576931?auto=format&fit=crop&q=80&w=1920",
-			"https://images.unsplash.com/photo-1583258292688-d0213dc5a3a8?auto=format&fit=crop&q=90&w=1920"
-		];
-		
-		let currentImgIndex = 0;		
+				
         // Store charts, map, and heatmap layers instance globally for updates
         let allActivityData = []; // <--- Master copy for filtering
 		let hourlyActivityChart, demographicsChart, map;
@@ -459,16 +452,6 @@
         let currentMapMode = 'heatmap'; // 'heatmap' or 'cluster'
         const categoryColors = ['#5D5CDE', '#34D399', '#FBBF24', '#F87171', '#60A5FA', '#8B5CF6'];
 		
-		function updateBackground() {
-            const bgContainer = document.getElementById('slideshow-bg');
-            if (bgContainer && groceryImages.length > 0) {
-                // Change the image
-                bgContainer.style.backgroundImage = `url('${groceryImages[currentImgIndex]}')`;
-                
-                // Logic: Move to next image, or back to 0 if at the end of the list
-                currentImgIndex = (currentImgIndex + 1) % groceryImages.length;
-            }
-
     // CRITICAL NEW GLOBAL VARIABLE: Stores the data currently displayed (cleared on Refresh)
         let localActivityData = {
             activity: [],
@@ -476,15 +459,7 @@
             dashboardMetrics: { totalConsumers: 0, activeLocations: 0, conversionRate: '0%' },
             targetKeyDemographics: { targetAgeGroup: 'N/A', keyInteraction: 'N/A', keyCategory: 'N/A' }
         };
-		
-		}
 
-        // Start the background timer as soon as the page is ready
-        document.addEventListener('DOMContentLoaded', () => {
-            updateBackground(); // Show first image immediately
-                setInterval(updateBackground, 5000); // Swap images every 5 seconds
-        });
-		
 		const API_URL ='';
 		
         // ---- API UTILITIES ----
