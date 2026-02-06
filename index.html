@@ -30,10 +30,10 @@
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#5D5CDE">
 
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="BehaviorTracker">
-    <link rel="apple-touch-icon" href="icon-192.png">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="mobile-web-app-title" content="BehaviorTracker">
+    <link rel="touch-icon" href="icon-192.png">
 	<link rel="stylesheet" href="style.css">
 	
     
@@ -1297,19 +1297,15 @@
             initOverviewMap();
 
             const token = localStorage.getItem('token');
-			const dashboard = document.getElementById('dashboard');
-			const authModal = document.getElementById('authModal');
-			
             if (token) {
-                // SUCCESS: Show the dashboard, hide the login
-                dashboard.classList.remove('hidden'); 
-                if(authModal) authModal.classList.add('hidden');
-                loadDashboardData(); // Call your data function
-            } else {                
-                dashboard.classList.add('hidden');
-                if(authModal) authModal.classList.remove('hidden');
+                document.getElementById('authModal').classList.add('hidden');
+                document.getElementById('dashboard').classList.remove('hidden');
+                map.invalidateSize();
+                fetchDashboardData();
+            } else {
+                document.getElementById('authModal').classList.remove('hidden');
             }
-			
+	
             document.getElementById('authForm').addEventListener('submit', async function(e) {
                 e.preventDefault();
                 const username = document.getElementById('username').value;
