@@ -1335,6 +1335,8 @@
                         localStorage.setItem('userId', result.userId);
                         document.getElementById('authModal').classList.add('hidden');
                         document.getElementById('dashboard').classList.remove('hidden');
+						initOverviewMap();
+						
                         setTimeout(() => {
 						    map.invalidateSize();
 							console.log("Map size recalculated");
