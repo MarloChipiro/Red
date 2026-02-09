@@ -250,6 +250,25 @@
                 </div>
             </div>
         </section>
+		<!-- Overview Map Card -->
+         <section class="mb-8">
+             <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md border border-gray-200 dark:border-gray-700">
+                 <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-xl font-bold">Overview Map</h2>
+                    <button id="toggleMapViewBtn" class="bg-primary/10 hover:bg-primary/20 text-primary dark:text-primary-dark py-1.5 px-3 rounded-md border border-primary/20 transition duration-300 text-xs font-bold uppercase tracking-wider">
+                        <i class="fas fa-layer-group mr-1"></i> Switch View
+                    </button>
+                </div>
+                
+                <div class="relative">
+                    <div id="map" class="map-container" style="height: 450px;"></div>
+                    
+                    <div id="mapLegend" class="map-legend dark:bg-gray-900 dark:text-white border border-gray-200 dark:border-gray-700">
+                        <h4 class="font-bold mb-2 border-b pb-1 text-xs">Item Category</h4>
+                        </div>
+                </div>
+            </div>
+        </section>
 
         <!-- Charts and Map Section -->
         <section class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
@@ -270,10 +289,9 @@
             </div>
         </section>
 
-        <!-- Recommendations and Overview Map Section -->
-        <section class="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-8 items-start">
-            <!-- Recommendations Card -->
-            <div class="lg:col-span-5 bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md border border-gray-200 dark:border-gray-700 h-full">
+        <!-- Recommendations Card-->
+        <section class="mb-8">          
+            <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md border border-gray-200 dark:border-gray-700">
                 <h2 class="text-xl font-bold mb-4 flex items-center">
                     <i class="fas fa-lightbulb text-yellow-500 mr-2"></i> Recommendations
                 </h2>
@@ -290,26 +308,9 @@
                     </div>
                 </div>
             </div>
-
-            <!-- Overview Map Card -->
-            <div class="lg:col-span-7 bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md border border-gray-200 dark:border-gray-700">
-                <div class="flex justify-between items-center mb-4">
-                    <h2 class="text-xl font-bold">Overview Map</h2>
-                    <button id="toggleMapViewBtn" class="bg-primary/10 hover:bg-primary/20 text-primary dark:text-primary-dark py-1.5 px-3 rounded-md border border-primary/20 transition duration-300 text-xs font-bold uppercase tracking-wider">
-                        <i class="fas fa-layer-group mr-1"></i> Switch View
-                    </button>
-                </div>
-                
-                <div class="relative">
-                    <div id="map" class="map-container" style="height: 450px;"></div>
-                    
-                    <div id="mapLegend" class="map-legend dark:bg-gray-900 dark:text-white border border-gray-200 dark:border-gray-700">
-                        <h4 class="font-bold mb-2 border-b pb-1 text-xs">Item Category</h4>
-                        </div>
-                </div>
-            </div>
-        </section>
-			 <!-- Data Management Section -->
+        </section>   
+		
+		<!-- Data Management Section -->
         <section class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md border border-gray-200 dark:border-gray-700">
             <h2 class="text-xl font-bold mb-4">Data Management</h2>
             <div class="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4">              
