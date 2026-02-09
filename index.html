@@ -170,28 +170,6 @@
             <p id="authMessage" class="mt-4 text-center text-sm font-medium"></p>
         </div>
     </div>
-	
-	<div class="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm mb-6 border border-gray-100 dark:border-gray-700">
-        <div class="flex flex-wrap items-center justify-between gap-4">
-            <h2 class="text-lg font-bold text-gray-800 dark:text-white">Filter Dashboard</h2>
-            <div class="flex items-center space-x-3">
-                <div>
-                    <label class="block text-xs font-medium text-gray-500 uppercase">Start Date</label>
-                    <input type="date" id="filterStartDate" class="p-2 text-sm border rounded-md dark:bg-gray-700 dark:text-white">
-                </div>
-                <div>
-                    <label class="block text-xs font-medium text-gray-500 uppercase">End Date</label>
-                    <input type="date" id="filterEndDate" class="p-2 text-sm border rounded-md dark:bg-gray-700 dark:text-white">
-                </div>
-                <button onclick="applyDateFilter()" class="mt-4 bg-primary hover:bg-primary-dark text-white px-4 py-2 rounded-md text-sm font-bold transition">
-                    Apply Filter
-                </button>
-                <button onclick="resetDateFilter()" class="mt-4 text-gray-500 hover:text-gray-700 text-sm font-medium">
-                    Reset
-                </button>
-            </div>
-        </div>
-    </div>
 
     <!-- Main Dashboard Content -->
     <div id="mainDashboard" class="container mx-auto p-4 hidden">
@@ -209,11 +187,38 @@
                     <i class="fas fa-sync-alt mr-2"></i> Refresh
                 </button>
 
-                <button id="logoutBtn" class="bg-red-500/80 hover:bg-red-600 text-white font-bold py-2 px-4 rounded-lg backdrop-blur-sm border border-white/20 shadow-md transition-all transform hover:scale-105 active:scale-95 text-sm flex items-center">
+                <button id="logoutBtn" class="bg-blue-500/80 hover:bg-red-600 text-white font-bold py-2 px-4 rounded-lg backdrop-blur-sm border border-white/20 shadow-md transition-all transform hover:scale-105 active:scale-95 text-sm flex items-center">
                     <i class="fas fa-sign-out-alt mr-2"></i> Logout
                 </button>
             </div>
+			<nav class="flex flex-wrap border-b border-white/10">
+				<button onclick="showPage('overviewPage')" class="nav-tab active px-6 py-3 text-white font-bold border-b-2 border-yellow-400">Overview</button>
+                <button onclick="showPage('hourlyPage')" class="nav-tab px-6 py-3 text-gray-400 hover:text-white font-bold">Hourly Activity</button>
+                <button onclick="showPage('demographicsPage')" class="nav-tab px-6 py-3 text-gray-400 hover:text-white font-bold">Demographics</button>
+                <button onclick="showPage('recommendationsPage')" class="nav-tab px-6 py-3 text-gray-400 hover:text-white font-bold">Recommendations</button>
+            </nav>
         </header>
+        <div id="overviewPage" class="dashboard-page block">
+		    <div class="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm mb-6 border border-gray-100 dark:border-gray-700">
+                <div class="flex flex-wrap items-center justify-between gap-4">
+                    <h2 class="text-lg font-bold text-gray-800 dark:text-white">Filter Dashboard</h2>
+                    <div class="flex items-center space-x-3">
+                <div>
+                    <label class="block text-xs font-medium text-gray-500 uppercase">Start Date</label>
+                    <input type="date" id="filterStartDate" class="p-2 text-sm border rounded-md dark:bg-gray-700 dark:text-white">
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-gray-500 uppercase">End Date</label>
+                    <input type="date" id="filterEndDate" class="p-2 text-sm border rounded-md dark:bg-gray-700 dark:text-white">
+                </div>
+                <button onclick="applyDateFilter()" class="mt-4 bg-primary hover:bg-primary-dark text-white px-4 py-2 rounded-md text-sm font-bold transition">
+                    Apply Filter
+                </button>
+                <button onclick="resetDateFilter()" class="mt-4 text-gray-500 hover:text-gray-700 text-sm font-medium">
+                    Reset
+                </button>
+            </div>
+        </div>
 	
         <!-- Main Metrics Section -->
         <section class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
@@ -265,32 +270,32 @@
                     
                     <div id="mapLegend" class="map-legend dark:bg-gray-900 dark:text-white border border-gray-200 dark:border-gray-700">
                         <h4 class="font-bold mb-2 border-b pb-1 text-xs">Item Category</h4>
-                        </div>
+                    </div>
                 </div>
             </div>
-        </section>
+		 </section>
 
-        <!-- Charts and Map Section -->
-        <section class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-            <!-- Hourly Activity Chart -->
+		<!-- Hourly Activity Chart -->		
+        <div id="hourlyPage" class="dashboard-page hidden">
             <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md border border-gray-200 dark:border-gray-700">
                 <h2 class="text-xl font-bold mb-4">Hourly Activity</h2>
                 <div class="chart-container">
                     <canvas id="hourlyActivityChart"></canvas>
                 </div>
             </div>
-
-            <!-- Demographics Chart -->
+		</div>
+        <!-- Demographics Chart -->
+		<div id="demographicsPage" class="dashboard-page hidden">
             <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md border border-gray-200 dark:border-gray-700">
                 <h2 class="text-xl font-bold mb-4">Demographics</h2>
                 <div class="chart-container">
                     <canvas id="demographicsChart"></canvas>
                 </div>
             </div>
-        </section>
+		</div>
 
         <!-- Recommendations Card-->
-        <section class="mb-8">          
+        <div id="recommendationsPage" class="dashboard-page hidden">        
             <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md border border-gray-200 dark:border-gray-700">
                 <h2 class="text-xl font-bold mb-4 flex items-center">
                     <i class="fas fa-lightbulb text-yellow-500 mr-2"></i> Recommendations
@@ -307,9 +312,8 @@
                         </div>
                     </div>
                 </div>
-            </div>
-        </section>   
-		
+            </div>   
+		</div>
 		<!-- Data Management Section -->
         <section class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md border border-gray-200 dark:border-gray-700">
             <h2 class="text-xl font-bold mb-4">Data Management</h2>
@@ -485,6 +489,33 @@
             return response;
         }
 
+		function showPage(pageId) {
+            // Hide all pages
+            document.querySelectorAll('.dashboard-page').forEach(page => {
+                page.classList.add('hidden');
+                page.classList.remove('block');
+            });
+			
+			// Show the selected page
+            const selectedPage = document.getElementById(pageId);
+            selectedPage.classList.remove('hidden');
+            selectedPage.classList.add('block');
+
+			// Update tab styling
+            document.querySelectorAll('.nav-tab').forEach(tab => {
+                tab.classList.remove('text-white', 'border-yellow-400', 'border-b-2');
+                tab.classList.add('text-gray-400');
+            });
+
+			// Highlight active tab
+            event.currentTarget.classList.add('text-white', 'border-yellow-400', 'border-b-2');
+            event.currentTarget.classList.remove('text-gray-400');
+
+            // Fix for Leaflet Map and Chart.js: Trigger resize when page is shown
+            if (pageId === 'overviewPage' && map) {
+                setTimeout(() => map.invalidateSize(), 100);
+            }
+        }
         // ---- MODAL AND UI FUNCTIONS ----
         function showActivityModal() {
             document.getElementById('addActivityModal').classList.remove('hidden');
