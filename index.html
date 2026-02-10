@@ -122,6 +122,15 @@
         .dark body {
             background-color: #0f172a; /* Darker navy for dark mode */
         }
+		#dashboard-wrapper.hidden {
+			display: none !important;
+		}
+		.leaflet-pane, .leaflet-top, .leaflet-bottom {
+			z-index: 1 !important;
+        }
+		#authModal {
+			z-index: 9999 !important;
+        }
     </style>
 </head>
 <body class="font-sans leading-normal tracking-normal text-gray-800 dark:text-gray-200">
@@ -162,7 +171,8 @@
             <p id="authMessage" class="mt-4 text-center text-sm font-medium"></p>
         </div>
     </div>
-	
+
+	<div id="dashboard-wrapper" class="hidden">
 	<div class="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm mb-6 border border-gray-100 dark:border-gray-700">
         <div class="flex flex-wrap items-center justify-between gap-4">
             <h2 class="text-lg font-bold text-gray-800 dark:text-white">Filter Dashboard</h2>
@@ -955,24 +965,24 @@
                 return;
             }
 
-            let recommendation = `<p class="mb-2 text-base text-gray-800">Your **Primary Target Demographic** is the **${targetAgeGroup}** age group.</p>`;
+            let recommendation = `<p class="mb-2 text-base text-gray-800">Your Primary Target Demographic is the ${targetAgeGroup} age group.</p>`;
     
             // Highlight the specific item instead of the category
-            recommendation += `<p class="mb-2 text-sm text-gray-700">The most popular specific product is **${keyItem}**, often associated with **${keyInteraction}** behavior.</p>`;
+            recommendation += `<p class="mb-2 text-sm text-gray-700">The most popular specific product is ${keyItem}, often associated with ${keyInteraction} behavior.</p>`;
 
             // Item-specific recommendations
             if (keyInteraction === 'Browsing') {
                 recommendation += `<p class="p-3 mt-4 text-sm bg-yellow-50 border border-yellow-200 rounded-md">
-                    <strong>💡 Recommendation:</strong> Many users in the **${targetAgeGroup}** group are looking at **${keyItem}** but not buying. Consider a "Bundle Deal" where purchasing **${keyItem}** gives a discount on a related item in the **${keyCategory}** category to seal the deal.
+                    <strong>💡 Recommendation:</strong> Many users in the ${targetAgeGroup} group are looking at ${keyItem} but not buying. Consider a "Bundle Deal" where purchasing ${keyItem} gives a discount on a related item in the ${keyCategory} category to seal the deal.
                 </p>`;
             } else if (keyInteraction === 'Purchasing') {
                 recommendation += `<p class="p-3 mt-4 text-sm bg-green-50 border border-green-200 rounded-md">
-                    <strong>💡 Recommendation:</strong> **${keyItem}** is a top seller for **${targetAgeGroup}**! Ensure high stock levels and consider placing high-margin items from the **${keyCategory}** section right next to the **${keyItem}** shelf to drive impulse buys.
+                    <strong>💡 Recommendation:</strong> ${keyItem} is a top seller for ${targetAgeGroup}! Ensure high stock levels and consider placing high-margin items from the ${keyCategory} section right next to the ${keyItem} shelf to drive impulse buys.
                 </p>
                 <p class="text-xs text-gray-500 mt-2">Inventory Alert: Check stock for "${keyItem}" immediately.</p>`;
             } else if (keyInteraction === 'Returning') {
                 recommendation += `<p class="p-3 mt-4 text-sm bg-red-50 border border-red-200 rounded-md">
-                    <strong>💡 Recommendation:</strong> There is a high return rate for **${keyItem}** among the **${targetAgeGroup}** demographic. Investigate if there is a quality batch issue specifically affecting **${keyItem}**.
+                    <strong>💡 Recommendation:</strong> There is a high return rate for ${keyItem} among the ${targetAgeGroup} demographic. Investigate if there is a quality batch issue specifically affecting ${keyItem}.
                 </p>`;
             }
 
@@ -1311,11 +1321,11 @@
                         localStorage.setItem('token', result.token);
                         localStorage.setItem('userId', result.userId);
                         document.getElementById('authModal').classList.add('hidden');
-                        document.getElementById('mainDashboard').classList.remove('hidden');
+                        document.getElementById('dashboard-wrapper').classList.remove('hidden');
                         setTimeout(() => {
 						    map.invalidateSize();
 							console.log("Map size recalculated");
-                        }, 100);
+                        }, 200);
                         fetchDashboardData();
                     } else {
                         authMessage.textContent = result.message;
@@ -1350,7 +1360,7 @@
             document.getElementById('logoutBtn').addEventListener('click', function() {
                 localStorage.removeItem('token');
                 localStorage.removeItem('userId');
-                document.getElementById('dashboardMain').classList.add('hidden');
+                document.getElementById('dashboard-wrapper').classList.add('hidden');
                 document.getElementById('authModal').classList.remove('hidden');
                 document.getElementById('peakHours').textContent = '';
             });
