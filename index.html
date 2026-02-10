@@ -1215,7 +1215,8 @@
                 
                 // Now, update the dashboard using this new local data
                 updateDashboardDisplay(localActivityData);
-				
+				updateCharts(data);
+				updateMap(data);
             } catch (error) {
                 console.error('Failed to fetch dashboard data:', error);
             }
@@ -1320,8 +1321,12 @@
                     if (response.ok) {
                         localStorage.setItem('token', result.token);
                         localStorage.setItem('userId', result.userId);
-                        document.getElementById('authModal').classList.add('hidden');
-                        document.getElementById('dashboard-wrapper').classList.remove('hidden');
+                        const wrapper = document.getElementById('dashboard-wrapper');
+                        const modal = document.getElementById('authModal');
+
+						modal.classList.add('hidden');
+                        wrapper.classList.remove('hidden');
+						
                         setTimeout(() => {
 						    map.invalidateSize();
 							console.log("Map size recalculated");
