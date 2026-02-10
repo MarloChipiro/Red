@@ -122,15 +122,6 @@
         .dark body {
             background-color: #0f172a; /* Darker navy for dark mode */
         }
-		#dashboard-wrapper.hidden {
-			display: none !important;
-		}
-		.leaflet-pane, .leaflet-top, .leaflet-bottom {
-			z-index: 1 !important;
-        }
-		#authModal {
-			z-index: 9999 !important;
-        }
     </style>
 </head>
 <body class="font-sans leading-normal tracking-normal text-gray-800 dark:text-gray-200">
@@ -171,8 +162,7 @@
             <p id="authMessage" class="mt-4 text-center text-sm font-medium"></p>
         </div>
     </div>
-
-	<div id="dashboard-wrapper" class="hidden">
+	
 	<div class="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm mb-6 border border-gray-100 dark:border-gray-700">
         <div class="flex flex-wrap items-center justify-between gap-4">
             <h2 class="text-lg font-bold text-gray-800 dark:text-white">Filter Dashboard</h2>
@@ -224,7 +214,7 @@
                 <div class="flex items-center justify-between">
                     <div>
                         <p class="text-sm font-bold text-blue-400 dark:text-cyan-400 uppercase tracking-wide">Total Consumers</p>
-                        <p id="totalConsumers" class="text-4xl font-black mt-1 text-primary-dark dark:text-yellow-400 drop-shadow-md">0</p>
+                        <p id="totalConsumers" class="text-7xl font-black mt-1 text-primary-dark dark:text-yellow-400 drop-shadow-md">0</p>
                     </div>
                     <i class="fas fa-users text-primary text-3xl opacity-90"></i>
                 </div>
@@ -235,7 +225,7 @@
                 <div class="flex items-center justify-between">
                     <div>
                         <p class="text-sm font-bold text-blue-400 dark:text-cyan-400 uppercase tracking-wide">Active Locations</p>
-                        <p id="activeLocations" class="text-4xl font-black mt-1 text-primary-dark dark:text-yellow-400 drop-shadow-md">0</p>
+                        <p id="activeLocations" class="text-7xl font-black mt-1 text-primary-dark dark:text-yellow-400 drop-shadow-md">0</p>
                     </div>
                     <i class="fas fa-map-marker-alt text-primary text-3xl opacity-90"></i>
                 </div>
@@ -246,7 +236,7 @@
                  <div class="flex items-center justify-between">
                     <div>
                         <p class="text-sm font-bold text-blue-400 dark:text-cyan-400 uppercase tracking-wide">Conversion Rate</p>
-                        <p id="conversionRate" class="text-4xl font-black mt-1 text-primary-dark dark:text-yellow-400 drop-shadow-md">0%</p>
+                        <p id="conversionRate" class="text-7xl font-black mt-1 text-primary-dark dark:text-yellow-400 drop-shadow-md">0%</p>
                     </div>
                     <i class="fas fa-chart-line text-primary text-3xl opacity-90"></i>
                 </div>
@@ -1215,8 +1205,7 @@
                 
                 // Now, update the dashboard using this new local data
                 updateDashboardDisplay(localActivityData);
-				updateCharts(data);
-				updateMap(data);
+				
             } catch (error) {
                 console.error('Failed to fetch dashboard data:', error);
             }
@@ -1321,16 +1310,12 @@
                     if (response.ok) {
                         localStorage.setItem('token', result.token);
                         localStorage.setItem('userId', result.userId);
-                        const wrapper = document.getElementById('dashboard-wrapper');
-                        const modal = document.getElementById('authModal');
-
-						modal.classList.add('hidden');
-                        wrapper.classList.remove('hidden');
-						
+                        document.getElementById('authModal').classList.add('hidden');
+                        document.getElementById('mainDashboard').classList.remove('hidden');
                         setTimeout(() => {
 						    map.invalidateSize();
 							console.log("Map size recalculated");
-                        }, 200);
+                        }, 100);
                         fetchDashboardData();
                     } else {
                         authMessage.textContent = result.message;
@@ -1365,7 +1350,7 @@
             document.getElementById('logoutBtn').addEventListener('click', function() {
                 localStorage.removeItem('token');
                 localStorage.removeItem('userId');
-                document.getElementById('dashboard-wrapper').classList.add('hidden');
+                document.getElementById('dashboardMain').classList.add('hidden');
                 document.getElementById('authModal').classList.remove('hidden');
                 document.getElementById('peakHours').textContent = '';
             });
