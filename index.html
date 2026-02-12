@@ -1350,7 +1350,7 @@
             document.getElementById('logoutBtn').addEventListener('click', function() {
                 localStorage.removeItem('token');
                 localStorage.removeItem('userId');
-                document.getElementById('dashboardMain').classList.add('hidden');
+                document.getElementById('mainDashboard').classList.add('hidden');
                 document.getElementById('authModal').classList.remove('hidden');
                 document.getElementById('peakHours').textContent = '';
             });
