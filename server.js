@@ -398,11 +398,9 @@ app.get('/sw.js', (req, res) => {
 
 // The catch-all route for the frontend (Express 5 compatible)
 // This ensures that any deep links (like /dashboard) return index.html
-app.get('*', (req, res) => {
-    // Only serve index.html if the request is NOT for an API 
-    if (!req.path.startsWith('/api')) {
-        res.sendFile(path.join(__dirname, 'index.html'));
-    }
+// The catch-all route for the frontend (Express 5 compatible)
+app.get(/^(?!\/api).+/, (req, res) => {
+    res.sendFile(path.join(__dirname, 'index.html'));
 });
 
 // Start the server
