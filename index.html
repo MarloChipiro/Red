@@ -1349,6 +1349,7 @@
 
             document.getElementById('logoutBtn').addEventListener('click', function() {
                 localStorage.removeItem('token');
+				location.reload();
                 localStorage.removeItem('userId');
                 document.getElementById('mainDashboard').classList.add('hidden');
                 document.getElementById('authModal').classList.remove('hidden');
@@ -1426,6 +1427,17 @@
             } catch (error) {
                 console.error('Export failed:', error);
                 showMessage("Export failed. Please check if the server is running.", true);
+            }
+        });
+		window.addEventListener('load', () => {
+            const token = localStorage.getItem('token');
+            if (token) {
+                // Hide auth modal and show dashboard immediately if token exists
+                document.getElementById('authModal').classList.add('hidden');
+                document.getElementById('mainDashboard').classList.remove('hidden');
+        
+                // Fetch the data to populate charts and maps
+                fetchDashboardData(); 
             }
         });
 		let deferredPrompt;
