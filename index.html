@@ -1471,34 +1471,18 @@
         closeAboutBtn.addEventListener('click', toggleAbout);
 
 		// Close if user clicks the dark background outside the box
-        window.addEventListener('click', (e) => {
+		window.addEventListener('click', (e) => {
             if (e.target === aboutModal) toggleAbout();
 		});
-
-		// 1. Register Service Worker
+			
 		if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('/sw.js')
-                .then(reg => console.log('Service Worker registered!'))
-                .catch(err => console.error('Registration failed:', err));
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js')
+                    .then(reg => console.log('Service Worker registered!'))
+                    .catch(err => console.error('Registration failed:', err));
+            });
         }
-
-        // 2. Handle Persistent Login on Refresh
-        const token = localStorage.getItem('token');
-        if (token) {
-            // Instantly show the dashboard structure
-            document.getElementById('authModal').classList.add('hidden');
-            document.getElementById('mainDashboard').classList.remove('hidden');
-            
-            // Give the browser 200ms to "paint" the dashboard 
-            // before the Map and Charts try to calculate their size
-            setTimeout(() => {
-                fetchDashboardData();
-			if (window.map) {
-                window.map.invalidateSize(); 
-			}
-            }, 100);
-        }
-    });
+    });	
     </script>
 </body>
 </html>
