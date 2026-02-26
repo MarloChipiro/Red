@@ -1349,7 +1349,6 @@
 
             document.getElementById('logoutBtn').addEventListener('click', function() {
                 localStorage.removeItem('token');
-				location.reload();
                 localStorage.removeItem('userId');
                 document.getElementById('mainDashboard').classList.add('hidden');
                 document.getElementById('authModal').classList.remove('hidden');
@@ -1429,17 +1428,6 @@
                 showMessage("Export failed. Please check if the server is running.", true);
             }
         });
-		window.addEventListener('load', () => {
-            const token = localStorage.getItem('token');
-            if (token) {
-                // Hide auth modal and show dashboard immediately if token exists
-                document.getElementById('authModal').classList.add('hidden');
-                document.getElementById('mainDashboard').classList.remove('hidden');
-        
-                // Fetch the data to populate charts and maps
-                fetchDashboardData(); 
-            }
-        });
 		let deferredPrompt;
         const installBanner = document.getElementById('install-banner');
         const installBtn = document.getElementById('install-button');
@@ -1486,15 +1474,31 @@
         window.addEventListener('click', (e) => {
             if (e.target === aboutModal) toggleAbout();
 		});
-			
+
+		// 1. Register Service Worker
 		if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('/sw.js')
-                    .then(reg => console.log('Service Worker registered!'))
-                    .catch(err => console.error('Registration failed:', err));
-            });
+            navigator.serviceWorker.register('/sw.js')
+                .then(reg => console.log('Service Worker registered!'))
+                .catch(err => console.error('Registration failed:', err));
         }
-    });	
+
+        // 2. Handle Persistent Login on Refresh
+        const token = localStorage.getItem('token');
+        if (token) {
+            // Instantly show the dashboard structure
+            document.getElementById('authModal').classList.add('hidden');
+            document.getElementById('mainDashboard').classList.remove('hidden');
+            
+            // Give the browser 200ms to "paint" the dashboard 
+            // before the Map and Charts try to calculate their size
+            setTimeout(() => {
+                fetchDashboardData();
+			if (window.map) {
+                window.map.invalidateSize(); 
+			}
+            }, 100);
+        }
+    });
     </script>
 </body>
 </html>
