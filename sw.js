@@ -1,4 +1,4 @@
-const CACHE_NAME = 'behavior-tracker-v2';
+const CACHE_NAME = 'behavior-tracker-v1';
 const ASSETS = [
   '/',
   '/index.html',
@@ -18,6 +18,7 @@ self.addEventListener('fetch', (event) => {
     caches.match(event.request).then((response) => response || fetch(event.request))
   );
 });
+
 
 
 
