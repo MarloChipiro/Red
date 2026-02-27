@@ -1287,7 +1287,7 @@
             const token = localStorage.getItem('token');
             if (token) {
                 document.getElementById('authModal').classList.add('hidden');
-                document.getElementById('dashboard').classList.remove('hidden');
+                document.getElementById('mainDashboard').classList.remove('hidden');
                 map.invalidateSize();
                 fetchDashboardData();
             } else {
