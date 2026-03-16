@@ -8,6 +8,11 @@ const mongoose = require('mongoose');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 
+const multer = require('multer');
+const csv = require('csv-parser');
+const fs = require('fs');
+const upload = multer({ dest: 'uploads/' }); // This creates a temporary folder for uploads
+
 const app = express();
 const PORT = process.env.PORT || 10000;
 const JWT_SECRET = 'your-secret-key'; // Change this to a secure, long, random key!
@@ -334,6 +339,41 @@ app.post('/api/demographics', authenticateToken, async (req, res) => {
         console.error('Failed to update demographics:', error);
         res.status(500).json({ message: "Internal server error" });
     }
+});
+app.post('/api/import-csv', authenticateToken, upload.single('csvFile'), async (req, res) => {
+    const results = [];
+    const userId = req.user.userId;
+
+    if (!req.file) return res.status(400).send('No file uploaded.');
+
+    fs.createReadStream(req.file.path)
+        .pipe(csv())
+        .on('data', (data) => results.push(data))
+        .on('end', async () => {
+            try {
+                const activities = results.map(row => ({
+                    date: row.Date || new Date().toISOString().split('T')[0],
+                    time: row.Time || "12:00",
+                    lat: parseFloat(row.Latitude),
+                    lon: parseFloat(row.Longitude),
+                    count: parseInt(row['Consumer Count']) || 1,
+                    gender: row.Gender || 'N/A',
+                    age: row['Age Group'] || 'N/A',
+                    interactions: [{
+                        type: row['Behavior Type'] || 'Browsing',
+                        item: row['Item Name'] || 'General',
+                        category: row['Item Category'] || 'General'
+                    }],
+                    userId: userId
+                }));
+
+                await Activity.insertMany(activities);
+                fs.unlinkSync(req.file.path); // Delete temp file
+                res.json({ message: `${activities.length} records imported successfully!` });
+            } catch (err) {
+                res.status(500).json({ error: err.message });
+            }
+        });
 });
 // PROTECTED ENDPOINT: Export flattened activity data as CSV
 // Update this endpoint in server.js
