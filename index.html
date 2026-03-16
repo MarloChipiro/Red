@@ -200,6 +200,11 @@
 				<button id="exportCsvBtn" class="bg-white/90 hover:bg-white text-blue-600 font-bold py-2 px-4 rounded-lg shadow-md border border-white/20 transition-all transform hover:scale-105 active:scale-95 text-sm flex items-center">
                     <i class="fas fa-file-csv mr-2"></i> Export to CSV
                 </button>
+
+				<input type="file" id="csvFileInput" accept=".csv" class="hidden" onchange="uploadCSV(this)">
+                <button onclick="document.getElementById('csvFileInput').click()" class="bg-green-500/80 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-lg shadow-md transition-all text-sm flex items-center">
+                    <i class="fas fa-file-import mr-2"></i> Import CSV
+                </button>
 				
 				<button id="refreshBtn" class="bg-blue-500/80 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg backdrop-blur-sm border border-white/20 shadow-md transition-all transform hover:scale-105 active:scale-95 text-sm flex items-center">
                     <i class="fas fa-sync-alt mr-2"></i> Refresh
@@ -1208,6 +1213,36 @@
 				
             } catch (error) {
                 console.error('Failed to fetch dashboard data:', error);
+            }
+        }
+		async function uploadCSV(input) {
+            const file = input.files[0];
+            if (!file) return;
+
+            const formData = new FormData();
+            formData.append('csvFile', file);
+
+            try {
+                const response = await fetch('/api/import-csv', {
+                    method: 'POST',
+                    headers: { 
+                        'Authorization': `Bearer ${localStorage.getItem('token')}` 
+                    },
+                    body: formData
+                });
+
+                const result = await response.json();
+                if (response.ok) {
+                    alert(result.message);
+                    refreshData(); // This reloads your map with the new data
+                } else {
+                    alert('Upload failed: ' + (result.error || result.message));
+                }
+            } catch (error) {
+                console.error('Error uploading CSV:', error);
+                alert('An error occurred during upload.');
+            } finally {
+                input.value = ''; 
             }
         }
  
