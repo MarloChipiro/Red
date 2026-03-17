@@ -351,27 +351,44 @@ app.post('/api/import-csv', authenticateToken, upload.single('csvFile'), async (
         .on('data', (data) => results.push(data))
         .on('end', async () => {
             try {
-                const activities = results.map(row => ({
-                    date: row.Date || new Date().toISOString().split('T')[0],
-                    time: row.Time || "12:00",
-                    lat: parseFloat(row.Latitude),
-                    lon: parseFloat(row.Longitude),
-                    count: parseInt(row['Consumer Count']) || 1,
-                    gender: row.Gender || 'N/A',
-                    age: row['Age Group'] || 'N/A',
-                    interactions: [{
-                        type: row['Behavior Type'] || 'Browsing',
-                        item: row['Item Name'] || 'General',
-                        category: row['Item Category'] || 'General'
-                    }],
-                    userId: userId
-                }));
+                if (results.length === 0) {
+                    return res.status(400).json({ error: "CSV file is empty or headers are missing." });
+                }
+
+                const activities = results.map((row, index) => {
+                    // VALIDATION: Check if essential columns exist
+                    const lat = parseFloat(row.Latitude || row.lat);
+                    const lon = parseFloat(row.Longitude || row.lon);
+                    
+                    if (isNaN(lat) || isNaN(lon)) {
+                        throw new Error(`Row ${index + 1}: Invalid Latitude or Longitude.`);
+                    }
+
+                    return {
+                        date: row.Date || row.date || new Date().toISOString().split('T')[0],
+                        time: row.Time || row.time || "12:00",
+                        lat: lat,
+                        lon: lon,
+                        count: parseInt(row['Consumer Count'] || row.count) || 1,
+                        gender: row.Gender || row.gender || 'N/A',
+                        age: row['Age Group'] || row.age || 'N/A',
+                        interactions: [{
+                            type: row['Behavior Type'] || row.interaction_type || 'Browsing',
+                            item: row['Item Name'] || row.interaction_item || 'General',
+                            category: row['Item Category'] || row.interaction_category || 'General'
+                        }],
+                        userId: userId
+                    };
+                });
 
                 await Activity.insertMany(activities);
-                fs.unlinkSync(req.file.path); // Delete temp file
+                fs.unlinkSync(req.file.path); 
                 res.json({ message: `${activities.length} records imported successfully!` });
             } catch (err) {
-                res.status(500).json({ error: err.message });
+                // Delete file even if it fails
+                if (fs.existsSync(req.file.path)) fs.unlinkSync(req.file.path);
+                console.error("Import Error:", err.message);
+                res.status(400).json({ error: `Import failed: ${err.message}` });
             }
         });
 });
