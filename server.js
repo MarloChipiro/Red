@@ -1,4 +1,4 @@
-require('dotenv').config();
+ require('dotenv').config();
 
 const express = require('express');
 const bodyParser = require('body-parser');
@@ -340,7 +340,7 @@ app.post('/api/demographics', authenticateToken, async (req, res) => {
         res.status(500).json({ message: "Internal server error" });
     }
 });
-app.post('/api/import-csv', authenticateToken, upload.single('csvFile'), async (req, res) => {
+app.post('/api/activity/import-csv', authenticateToken, upload.single('csvFile'), async (req, res) => {
     const results = [];
     const userId = req.user.userId;
 
