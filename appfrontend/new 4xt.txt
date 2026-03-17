@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Consumer Behavior Tracker</title>
+    <script src="http://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#5D5CDE',
+                        'primary-dark': '#4B4BC1',
+                    }
+                }
+            },
+            darkMode: 'class'
+        }
+    </script>
+    <script src="http://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="http://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <link rel="stylesheet" href="http://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link href="http://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    
+    <style>
+        .chart-container { position: relative; height: 300px; width: 100%; }
+        .map-container { position: relative; height: 400px; width: 100%; border-radius: 0.5rem; overflow: hidden; border: 2px solid #e5e7eb; }
+        
+        /* Slideshow Styles */
+        .bg-slide {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background-size: cover;
+            background-position: center;
+            opacity: 0;
+            transition: opacity 2s ease-in-out;
+        }
+        .bg-slide.active { opacity: 1; }
+
+        /* Readability: Glassmorphism */
+        #authModal > div, #dashboard section, .bg-white {
+            background-color: rgba(255, 255, 255, 0.85) !important;
+            backdrop-filter: blur(8px);
+        }
+        .dark #authModal > div, .dark #dashboard section, .dark .bg-gray-800 {
+            background-color: rgba(31, 41, 55, 0.85) !important;
+            backdrop-filter: blur(8px);
+        }
+    </style>
+</head>
+<body class="bg-gray-100 dark:bg-gray-900 font-sans leading-normal tracking-normal text-gray-800 dark:text-gray-200">
+    
+    <div id="bg-slideshow" class="fixed inset-0 z-[-1] overflow-hidden">
+        <div class="absolute inset-0 bg-black/40 dark:bg-black/60 z-[1]"></div>
+        <div id="slides-container" class="relative w-full h-full"></div>
+    </div>
+
+    <div id="authModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex items-center justify-center z-50">
+        <div class="relative p-8 bg-white dark:bg-gray-800 w-96 rounded-lg shadow-xl">
+            <h3 class="text-2xl font-bold mb-4 text-center">Login or Register</h3>
+            <form id="authForm" class="space-y-4">
+                <input type="text" id="username" placeholder="Username" required class="w-full p-2 border rounded dark:bg-gray-700">
+                <input type="password" id="password" placeholder="Password" required class="w-full p-2 border rounded dark:bg-gray-700">
+                <div class="flex space-x-2">
+                    <button type="button" id="registerBtn" class="w-1/2 bg-primary text-white py-2 rounded">Register</button>
+                    <button type="submit" class="w-1/2 bg-green-600 text-white py-2 rounded">Login</button>
+                </div>
+            </form>
+            <p id="authMessage" class="mt-4 text-center text-sm"></p>
+        </div>
+    </div>
+
+    <div id="dashboard" class="container mx-auto p-4 hidden">
+        <header class="flex justify-between items-center py-4 mb-8 border-b dark:border-gray-700">
+            <h1 class="text-3xl font-extrabold text-primary">Consumer Dashboard</h1>
+            <button id="logoutBtn" class="bg-red-500 text-white px-4 py-2 rounded">Logout</button>
+        </header>
+        
+        <section class="bg-white p-6 rounded-lg shadow-md">
+            <h2 class="text-xl font-bold mb-4 text-gray-800">Welcome to the Tracker</h2>
+            <p class="text-gray-600">The slideshow should be visible behind this panel.</p>
+        </section>
+    </div>
+
+    <script>
+        // 1. Image Configuration
+        const bgImages = [
+            'https://www.eatthis.com/wp-content/uploads/sites/4/2020/07/aisle.jpg',
+            'https://cdn.pixabay.com/photo/2016/03/02/20/13/grocery-1232944_1280.jpg',
+            'https://cdn.pixabay.com/photo/2020/05/21/18/52/supermarket-5202138_1280.jpg',
+            'https://static1.backyardbossimages.com/wordpress/wp-content/uploads/2024/04/vegetables-in-grocery-store.jpg'
+        ];
+
+        // 2. Slideshow Logic
+        function startSlideshow() {
+            const container = document.getElementById('slides-container');
+            if (!container) return;
+
+            bgImages.forEach((src, i) => {
+                const slide = document.createElement('div');
+                slide.className = `bg-slide ${i === 0 ? 'active' : ''}`;
+                slide.style.backgroundImage = `url('${src}')`;
+                container.appendChild(slide);
+            });
+
+            let current = 0;
+            const slides = document.querySelectorAll('.bg-slide');
+            
+            setInterval(() => {
+                slides[current].classList.remove('active');
+                current = (current + 1) % slides.length;
+                slides[current].classList.add('active');
+            }, 6000); 
+        }
+
+        // 3. App Logic
+        document.addEventListener('DOMContentLoaded', () => {
+            // Initialize Background
+            startSlideshow();
+
+            // Mock Login Logic
+            const authForm = document.getElementById('authForm');
+            const authModal = document.getElementById('authModal');
+            const dashboard = document.getElementById('dashboard');
+
+            authForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                authModal.classList.add('hidden');
+                dashboard.classList.remove('hidden');
+            });
+
+            document.getElementById('logoutBtn').addEventListener('click', () => {
+                authModal.classList.remove('hidden');
+                dashboard.classList.add('hidden');
+            });
+        });
+    </script>
+</body>
+</html>

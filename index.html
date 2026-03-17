@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Consumer Behavior Tracker</title>
+    <title>Consumer Behavior Tracker | Retail Analytics & Insights</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -27,7 +27,14 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.css" />
     <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.Default.css" />
     <script src="https://unpkg.com/leaflet.markercluster@1.4.1/dist/leaflet.markercluster.js"></script>
-    <link rel="stylesheet" href="style.css">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#5D5CDE">
+
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="mobile-web-app-title" content="BehaviorTracker">
+    <link rel="touch-icon" href="icon-192.png">
+	<link rel="stylesheet" href="style.css">
 	
     
     <style>
@@ -94,18 +101,6 @@
             align-items: center;
             margin-bottom: 5px;
 		}	
-		#slideshow-bg {
-            filter: brightness(0.9); /* 0.9 is much closer to the original photo clarity */
-
-        /* Optional: add a subtle zoom effect */
-        .bg-zoom {
-            transform: scale(1.05);	
-	    #slideshow-bg {
-            background-color: #1a202c; /* A dark gray so it doesn't flash bright white */
-            background-size: cover;
-            background-position: center;
-			transition: background-image 1s ease-in-out; /* Smooth fade between images */
-        }
 		#totalConsumers, #activeLocations, #conversionRate {
             text-shadow: 0px 2px 4px rgba(0, 0, 0, 0.2); /* Adds a subtle shadow behind the numbers */
             letter-spacing: -1px;
@@ -118,14 +113,33 @@
         header button:hover {
             box-shadow: 0 0 15px rgba(255, 255, 255, 0.2);
         }
+        body {
+            background-color: #1e293b; /* A solid, deep blue-gray (Tailwind's Slate-800) */
+        }
+        #dashboard {
+            background-color: white;
+        }
+        .dark body {
+            background-color: #0f172a; /* Darker navy for dark mode */
+        }	
     </style>
 </head>
-<body class="bg-transparent font-sans leading-normal tracking-normal text-gray-800 dark:text-gray-200">
-    <div id="slideshow-bg" class="fixed inset-0 -z-20 bg-cover bg-center transition-all duration-1000 ease-in-out"></div>
-    <div class="fixed inset-0 -z-10 bg-white/40 dark:bg-gray-900/60"></div>
-
+<body class="font-sans leading-normal tracking-normal text-gray-800 dark:text-gray-200">
+    <div id="install-banner" class="fixed bottom-0 left-0 right-0 bg-primary border-t border-white/20 shadow-[0_-4px_10px_rgba(0,0,0,0.3)] text-white p-4 flex justify-between items-center transform translate-y-full transition-transform duration-300 z-[9999]">
+        <div class="flex items-center">
+            <img src="icon-192.png" alt="App Icon" class="w-12 h-12 rounded-lg mr-3">
+            <div>
+                <p class="font-bold">Install Behavior Tracker</p>
+                <p class="text-xs text-blue-100">Access insights faster from your home screen</p>
+            </div>
+        </div>
+        <div class="flex gap-2">
+            <button id="close-banner" class="px-3 py-2 text-sm">Maybe Later</button>
+            <button id="install-button" class="bg-white text-primary px-4 py-2 rounded-lg font-bold text-sm">Install</button>
+        </div>
+    </div>
     <!-- Login/Register Modal -->
-    <div id="authModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex items-center justify-center z-50">
+    <div id="authModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex items-center justify-center z-[9999]">
         <div class="relative p-8 bg-white dark:bg-gray-800 w-96 rounded-lg shadow-xl">
             <h3 class="text-2xl font-bold mb-4 text-center">Login or Register</h3>
             <form id="authForm" class="space-y-4">
@@ -141,7 +155,10 @@
                     <button type="button" id="registerBtn" class="w-full py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-dark">Register</button>
                     <button type="submit" id="loginBtn" class="w-full py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-600">Login</button>
                 </div>
-            </form>
+            </form>	
+			<p class="mt-4 text-center text-xs text-gray-500 dark:text-gray-400">
+                Please register before login unless you have an account already!
+            </p>
             <p id="authMessage" class="mt-4 text-center text-sm font-medium"></p>
         </div>
     </div>
@@ -169,7 +186,7 @@
     </div>
 
     <!-- Main Dashboard Content -->
-    <div id="dashboard" class="container mx-auto p-4 hidden">
+    <div id="mainDashboard" class="container mx-auto p-4 hidden">
         <header class="flex flex-col sm:flex-row justify-between items-center py-4 px-6 mb-8 bg-white/10 dark:bg-gray-900/40 backdrop-blur-md rounded-xl border border-white/20 shadow-lg">
             <h1 class="text-3xl font-black text-white drop-shadow-md mb-4 sm:mb-0 tracking-tight">
                 Consumer <span class="text-yellow-400">Dashboard</span>
@@ -178,6 +195,10 @@
 			<div class="flex flex-wrap items-center justify-center gap-3">
                 <button id="addActivityBtn" class="bg-primary/80 hover:bg-primary text-white font-bold py-2 px-4 rounded-lg backdrop-blur-sm border border-white/20 shadow-md transition-all transform hover:scale-105 active:scale-95 text-sm flex items-center">
                     <i class="fas fa-plus-circle mr-2"></i> Add Activity
+                </button>
+
+				<button id="exportCsvBtn" class="bg-white/90 hover:bg-white text-blue-600 font-bold py-2 px-4 rounded-lg shadow-md border border-white/20 transition-all transform hover:scale-105 active:scale-95 text-sm flex items-center">
+                    <i class="fas fa-file-csv mr-2"></i> Export to CSV
                 </button>
 				
 				<button id="refreshBtn" class="bg-blue-500/80 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg backdrop-blur-sm border border-white/20 shadow-md transition-all transform hover:scale-105 active:scale-95 text-sm flex items-center">
@@ -188,15 +209,15 @@
                     <i class="fas fa-sign-out-alt mr-2"></i> Logout
                 </button>
             </div>
-        </header>
-	
+        </header>       	
+        	
         <!-- Main Metrics Section -->
         <section class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
             <!-- Total Consumers Card -->
             <div class="bg-white/10 dark:bg-gray-900/20 backdrop-blur-md p-6 rounded-lg shadow-md border border-white/20">
                 <div class="flex items-center justify-between">
                     <div>
-                        <p class="text-sm font-medium text-gray-700 dark:text-gray-300">Total Consumers</p>
+                        <p class="text-sm font-bold text-blue-400 dark:text-cyan-400 uppercase tracking-wide">Total Consumers</p>
                         <p id="totalConsumers" class="text-4xl font-black mt-1 text-primary-dark dark:text-yellow-400 drop-shadow-md">0</p>
                     </div>
                     <i class="fas fa-users text-primary text-3xl opacity-90"></i>
@@ -207,7 +228,7 @@
             <div class="bg-white/10 dark:bg-gray-900/20 backdrop-blur-md p-6 rounded-lg shadow-md border border-white/20">
                 <div class="flex items-center justify-between">
                     <div>
-                        <p class="text-sm font-medium text-gray-700 dark:text-gray-300">Active Locations</p>
+                        <p class="text-sm font-bold text-blue-400 dark:text-cyan-400 uppercase tracking-wide">Active Locations</p>
                         <p id="activeLocations" class="text-4xl font-black mt-1 text-primary-dark dark:text-yellow-400 drop-shadow-md">0</p>
                     </div>
                     <i class="fas fa-map-marker-alt text-primary text-3xl opacity-90"></i>
@@ -218,7 +239,7 @@
             <div class="bg-white/10 dark:bg-gray-900/20 backdrop-blur-md p-6 rounded-lg shadow-md border border-white/20">
                  <div class="flex items-center justify-between">
                     <div>
-                        <p class="text-sm font-medium text-gray-700 dark:text-gray-300">Conversion Rate</p>
+                        <p class="text-sm font-bold text-blue-400 dark:text-cyan-400 uppercase tracking-wide">Conversion Rate</p>
                         <p id="conversionRate" class="text-4xl font-black mt-1 text-primary-dark dark:text-yellow-400 drop-shadow-md">0%</p>
                     </div>
                     <i class="fas fa-chart-line text-primary text-3xl opacity-90"></i>
@@ -283,15 +304,8 @@
                         </div>
                 </div>
             </div>
-        </section>
-			 <!-- Data Management Section -->
-        <section class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md border border-gray-200 dark:border-gray-700">
-            <h2 class="text-xl font-bold mb-4">Data Management</h2>
-            <div class="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4">              
-                <button id="exportCsvBtn" class="bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 py-2 px-4 rounded-lg shadow hover:bg-gray-300 dark:hover:bg-gray-600 transition duration-300 text-sm">Export to CSV</button>
-            </div>
-        </section>
-    </div>
+        </section>		
+	</div>
 
     <!-- Modals (Add Data Forms) -->
     <!-- Add Activity Data Modal -->
@@ -341,6 +355,15 @@
                     <input type="number" id="activityCount" name="activityCount" value="1" readonly 
                         class="mt-1 block w-full rounded-md border-gray-300 shadow-sm bg-gray-100 dark:bg-gray-600 cursor-not-allowed focus:ring-0">
                 </div>
+				<div>
+                    <label for="activityGender" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Gender</label>
+                    <select id="activityGender" name="activityGender" required 
+                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-dark focus:ring focus:ring-primary-dark focus:ring-opacity-50 dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+                        <option value="" disabled selected>Select gender...</option>
+                        <option value="F">Female (F)</option>
+                        <option value="M">Male (M)</option>
+                    </select>
+                </div>
                 <div>
                     <label for="activityAge" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Age Group</label>
                     <select id="activityAge" name="activityAge" required 
@@ -361,7 +384,27 @@
             </form>
         </div>
     </div>
-	
+    <div class="fixed bottom-6 left-6 z-[9999]">
+        <button id="openAbout" class="bg-white/90 backdrop-blur-md hover:bg-white text-primary text-sm font-bold py-2 px-4 rounded-full shadow-[0_4px_20px_rgba(0,0,0,0.3)] border-2 border-primary/20 transition-all active:scale-95">
+            <i class="fas fa-info-circle mr-2"></i> About Us
+        </button>
+    </div>
+
+    <div id="aboutModal" class="fixed inset-0 z-[10000] hidden flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+        <div class="bg-white dark:bg-gray-800 rounded-2xl max-w-lg w-full p-8 shadow-2xl transform transition-all border border-gray-100 dark:border-gray-700">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-2xl font-black text-gray-900 dark:text-white tracking-tight">About Tracker</h3>
+                <button id="closeAbout" class="text-gray-400 hover:text-gray-600 dark:hover:text-white transition-colors text-2xl">&times;</button>
+            </div>
+            <div class="text-gray-600 dark:text-gray-300 space-y-4 leading-relaxed">
+                <p>This platform provides real-time <strong>Consumer Behavior Analytics</strong> for retail environments.</p>
+                <p>By visualizing foot traffic through heatmaps and tracking interaction metrics, we help businesses optimize their floor plans and increase conversion rates(TOTAL PURCHASES/TOTAL CONSUMERS.</p>
+            </div>
+            <button id="closeAboutBtn" class="mt-8 w-full bg-primary text-white font-bold py-3 rounded-xl hover:bg-primary-dark shadow-lg shadow-primary/30 transition-all">
+                Got it!
+            </button>
+        </div>
+    </div>
     <script> 
 	    const groceryData = {
             "Fruits": ["Apples", "Grapes", "Oranges", "Avocados", "Peaches", "Pineapple", "Pears", "Apricots", "Bananas", "Berries", "Cherries", "Kiwi", "Lemons", "Limes", "Melons", "Nectarines", "Papaya", "Plums", "Pomegranate", "Watermelon"],
@@ -369,34 +412,26 @@
             "Meat": ["Chicken", "Game Meat", "Turkey", "Beef", "Pork", "Rabbit", "Bacon", "Hot Dogs", "Steak", "Ground Turkey", "Deli Meat", "Ham", "Sausage"],
             "Fish and shellfish": ["Mackerel", "Alaska Pollock", "Salmon", "Cod", "Tilapia", "Tuna","Catfish", "Lobster", "Crab", "Oysters", "Bream", "Tilapia", "Haliburt"],
             "Breakfast & Dairy": ["Milk", "Eggs", "Yogurt", "Cheese", "Oats", "Granola", "Grits", "Pancake mix", "Instant", "Cereal"],
-            "Bakery": ["Whole Wheat", "Dinner Rolls", "Sandwich", "Croutons", "White Bread", "Pies", "Muffins", "Pastries", "Cookies","Tortillas Corn", "Donuts", "Hamburger Buns", "Cake", "Bagels", "Hotdog Buns", "Tortillas Flour"],
+            "Bakery": ["Whole Wheat Bread", "Dinner Rolls", "Sandwich", "Croutons", "White Bread", "Pies", "Muffins", "Pastries", "Cookies","Tortillas Corn", "Donuts", "Hamburger Buns", "Cake", "Bagels", "Hotdog Buns", "Tortillas Flour"],
             "Beverages": ["Water", "Coffee", "Milk", "Juice", "Club Soda", "Tea", "Beer", "Champagne", "Soft Drinks", "Liquor", "Diet Soft Drinks", "Energy Drinks"],
             "Baking": ["Flour", "Baking Powder", "Butter", "Milk", "Eggs", "Baking Soda", "Bread Crumbs", "Cake Decor", "Cake Mix", "Peaches", "Chocolate Powder", "Cocoa", "Cornmeal", "Cornstarch", "Food Coloring", "Frosting", "Muffin mix", "Pie Crust", "Sugar Brown", "Sugar Powdered", "Yeast"],
-            "Wine": ["Red", "White", "Rosé", "Sparkling", ],
+            "Wine": ["Red Wine", "White Wine", "Rosé Wine", "Sparkling Wine", "Dessert & Fortified Wine"],
             "Condiments, Spices & Sauces": ["Salt", "Sugar", "BBQ Sauce", "Catsup", "Cocktail Sauce", "Pepper", "Oregano", "Cinnamon", "Ketchup", "Mayonnaise", "Mustard", "Honey", "Hot Sauce", "Cooking Spray", "Horseradish", "Lemon Juice", "Olive Oil", "Relish", "Salad Dressing", "Salsa", "Steak Sauce", "Soy Sauce", "Sweet & Sour", "Teriyaki", "Vegetable Oil", "Vinegar"],
 			"Seasoning": ["Basil", "Bay Leaves", "BBQ Seasoning", "Cinnamon", "Cloves", "Cumin", "Curry", "Dill", "Garlic Powder", "Garlic Salt", "Gravy Mix", "Italian Seasoning", "Marinade", "Meat Tenderizer", "Oregano", "Paprika", "Pepper", "Poppy Seed", "Soup Mix", "Vanilla Extract"],
-            "Canned Goods": ["Olives (Black)", "Soup", "Tuna", "Olives (Green)", "Applesauce", "Baked Beans", "Black Beans", "Broth", "Bullion Cubes", "Canned Fruit", "Canned Vegetables", "Chilli", "Jam/Jelly", "Creamed Corn", "Pasta Sauce", "Peanut Butter", "Chilli", "Pickles", "Pie Filling", "Mushrooms"],
+            "Canned Goods": ["Olives (Black)", "Soup", "Tuna", "Olives (Green)", "Applesauce", "Baked Beans", "Black Beans", "Broth", "Bullion Cubes", "Canned Fruit", "Canned Vegetables", "Chilli", "Jam/Jelly", "Creamed Corn", "Pasta Sauce", "Peanut Butter", "Chilli", "Pickles", "Pie Filling", "Mushrooms", "Tinned Fish", "Canned Soup"],
 			"Paper Products": ["Aluminium Foil", "Coffe Filters", "Cups", "Garbage Bags", "Napkins", "Paper Plates", "Paper Towels", "Plastic Bags", "Plastic Cutlery", "Plastic Wrap", "Waxed Paper", "Straws"],
             "Snacks": ["Chips", "Crackers", "Pretzels", "Popcorn", "Peanuts", "Nuts", "Candy", "Cookis", "Dried Fruit", "Gelatin", "Seeds", "Granolar Bars", "Gums", "Raisins", "Potato Chips", "Pudding", "Tortilla Chips"],
             "Baby Items": ["Baby Food", "Diapers", "Wet Wipes", "Moisturizing Lotion", "Diaper Cream", "Formula"],
             "Pasta/Rice": ["Spaghetti", "Macaroni", "Noodles", "White Rice", "Lasagna", "Mac $ Cheese", "Burger Helper", "Brown Rice", "Rice Mix", "Couscous"],
 			"Pets": ["Cats Food", "Cat Sand", "Dog Food", "Shampoo", "Treats", "Flue Treatment"],
-			"Misc. Items": ["Batteries", "Charcoal", "Greeting Cards"],
+			"Misc. Items": ["Batteries", "Charcoal", "Greeting Cards", "Magazines", "Newspapers", "Reusable Shopping Bags", "Pet Toys", "Band-aids", "Antiseptic Wipes", "Ballpoint Pens", "Permanent Markers", "Highlighters", "Thermometers", "Notebooks", "Envelopes", "Sticky Notes", "Extension Cords", "Tape"],
 			"Refridgerated": ["Buffer", "Cheddar Cheese", "Milk", "Processed Cheese", "Polony", "Yoghurt", "Ice Cream", "Sower Cream", "Mozzarella", "Maheu"],
 			"Cleaning": ["Air Freshener", "Bleach", "Dish Soap", "Dishwasher Detergent", "Fabric Softener", "Glass Spray", "Laundry Soap", "Polish", "Sponges", "Vacuum Bags"],
 			"Personal Care": ["Bath Soap", "Bug Repellent", "Conditioner", "Cotton Swabs", "Dental Floss", "Deodorant", "Facial Tissue", "Family Planning", "Feminine Products", "Pads", "Hair Spray", "Hand Soap", "Lip Care", "Lotion", "Makeup", "Mouthwash", "Razors/Blades", "Shampoo", "Shaving Cream", "Sunscreen", "Toilet Tissue", "Toothbrush", "Toothpaste"],
-        };
-		
-		const groceryImages = [
-            "https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&q=90&w=1920", // 1. Main Aisle
-			"https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&q=80&w=1920",
-			"https://images.unsplash.com/photo-1583258292688-d0213dc5a3a8?auto=format&fit=crop&q=90&w=1920",  // Refrigerated
-            "https://images.unsplash.com/photo-1578916171728-46686eac8d58?auto=format&fit=crop&q=80&w=1920",
-            "https://images.unsplash.com/photo-1543168256-418811576931?auto=format&fit=crop&q=80&w=1920",
-			"https://images.unsplash.com/photo-1583258292688-d0213dc5a3a8?auto=format&fit=crop&q=90&w=1920"
-		];
-		
-		let currentImgIndex = 0;		
+            "Cereal": ["Corn Flakes", "Cerevita", "Oats", "Frosted Flakes", "Barley"],
+			"Kitchen Utensils": ["Pot", "Pan", "Spoons&Forks", "Cutlery", "Dish Towel"],
+		};
+				
         // Store charts, map, and heatmap layers instance globally for updates
         let allActivityData = []; // <--- Master copy for filtering
 		let hourlyActivityChart, demographicsChart, map;
@@ -405,16 +440,6 @@
         let currentMapMode = 'heatmap'; // 'heatmap' or 'cluster'
         const categoryColors = ['#5D5CDE', '#34D399', '#FBBF24', '#F87171', '#60A5FA', '#8B5CF6'];
 		
-		function updateBackground() {
-            const bgContainer = document.getElementById('slideshow-bg');
-            if (bgContainer && groceryImages.length > 0) {
-                // Change the image
-                bgContainer.style.backgroundImage = `url('${groceryImages[currentImgIndex]}')`;
-                
-                // Logic: Move to next image, or back to 0 if at the end of the list
-                currentImgIndex = (currentImgIndex + 1) % groceryImages.length;
-            }
-
     // CRITICAL NEW GLOBAL VARIABLE: Stores the data currently displayed (cleared on Refresh)
         let localActivityData = {
             activity: [],
@@ -422,16 +447,8 @@
             dashboardMetrics: { totalConsumers: 0, activeLocations: 0, conversionRate: '0%' },
             targetKeyDemographics: { targetAgeGroup: 'N/A', keyInteraction: 'N/A', keyCategory: 'N/A' }
         };
-		
-		}
 
-        // Start the background timer as soon as the page is ready
-        document.addEventListener('DOMContentLoaded', () => {
-            updateBackground(); // Show first image immediately
-                setInterval(updateBackground, 5000); // Swap images every 5 seconds
-        });
-		
-		const API_URL = window.location.origin;
+		const API_URL ='';
 		
         // ---- API UTILITIES ----
         async function fetchWithAuth(url, options = {}) {
@@ -798,9 +815,12 @@
                 }
                 // Leaflet Heat expects [lat, lon, intensity]
                 acc[key].heat.push([curr.lat, curr.lon, curr.count]);
-                
+
+				const latJitter = (Math.random() - 0.5) * 0.00005; // Tiny offset (~5 meters)
+                const lonJitter = (Math.random() - 0.5) * 0.00005;
+	
                 // Add Marker for Cluster view
-                acc[key].cluster.push(L.marker([curr.lat, curr.lon]).bindPopup(
+                acc[key].cluster.push(L.marker([curr.lat + latJitter, curr.lon + lonJitter]).bindPopup(
                     `<b>Sub-Category:</b> ${curr.category}<br>` +
 					`<b>Item:</b> ${curr.item}<br>` +
 					`<b>Consumers:</b> ${curr.count}`
@@ -815,17 +835,26 @@
                 const data = groupedData[key];
                 const color = categoryColors[index % categoryColors.length];
 
-                // Create the Heat Layer
+                // Create the Cluster Layer
+                const clusterGroup = L.markerClusterGroup({
+					spiderfyOnMaxZoom: true,      // Fans out markers at the same spot
+                    showCoverageOnHover: true,    // Shows the area covered by the cluster
+                    zoomToBoundsOnClick: true,    // Zooms in when clicking a cluster
+                    maxClusterRadius: 20,         // Smaller radius (in pixels) makes sub-clusters more visible
+                    // This uses the category color for the spider lines
+                    spiderLegPolylineOptions: { weight: 1.5, color: color, opacity: 0.6 } 
+                });
+				
+                clusterGroup.addLayers(data.cluster);
+                clusterLayers[key] = clusterGroup; 
+
+				// Create Heatmap Layer
                 heatLayers[key] = L.heatLayer(data.heat, {
                     radius: 25,
                     blur: 15,
-                    gradient: { 0.4: color, 0.6: color, 1.0: color }
+                    maxZoom: 17,
+                    gradient: { 0.4: 'red', 0.6: 'cyan', 0.7: 'lime', 0.8: 'pink', 1.0: color }
                 });
-
-                // Create the Cluster Layer
-                const clusterGroup = L.markerClusterGroup();
-                clusterGroup.addLayers(data.cluster);
-                clusterLayers[key] = clusterGroup; 
 
                 // 5. Build Legend Item (Checklist)
                 const legendItem = document.createElement('div');
@@ -926,24 +955,24 @@
                 return;
             }
 
-            let recommendation = `<p class="mb-2 text-base text-gray-800">Your **Primary Target Demographic** is the **${targetAgeGroup}** age group.</p>`;
+            let recommendation = `<p class="mb-2 text-base text-gray-800">Your Primary Target Demographic is the ${targetAgeGroup} age group.</p>`;
     
             // Highlight the specific item instead of the category
-            recommendation += `<p class="mb-2 text-sm text-gray-700">The most popular specific product is **${keyItem}**, often associated with **${keyInteraction}** behavior.</p>`;
+            recommendation += `<p class="mb-2 text-sm text-gray-700">The most popular specific product is ${keyItem}, often associated with ${keyInteraction} behavior.</p>`;
 
             // Item-specific recommendations
             if (keyInteraction === 'Browsing') {
                 recommendation += `<p class="p-3 mt-4 text-sm bg-yellow-50 border border-yellow-200 rounded-md">
-                    <strong>💡 Recommendation:</strong> Many users in the **${targetAgeGroup}** group are looking at **${keyItem}** but not buying. Consider a "Bundle Deal" where purchasing **${keyItem}** gives a discount on a related item in the **${keyCategory}** category to seal the deal.
+                    <strong>💡 Recommendation:</strong> Many users in the ${targetAgeGroup} group are looking at ${keyItem} but not buying. Consider a "Bundle Deal" where purchasing ${keyItem} gives a discount on a related item in the ${keyCategory} category to seal the deal.
                 </p>`;
             } else if (keyInteraction === 'Purchasing') {
                 recommendation += `<p class="p-3 mt-4 text-sm bg-green-50 border border-green-200 rounded-md">
-                    <strong>💡 Recommendation:</strong> **${keyItem}** is a top seller for **${targetAgeGroup}**! Ensure high stock levels and consider placing high-margin items from the **${keyCategory}** section right next to the **${keyItem}** shelf to drive impulse buys.
+                    <strong>💡 Recommendation:</strong> ${keyItem} is a top seller for ${targetAgeGroup}! Ensure high stock levels and consider placing high-margin items from the ${keyCategory} section right next to the ${keyItem} shelf to drive impulse buys.
                 </p>
                 <p class="text-xs text-gray-500 mt-2">Inventory Alert: Check stock for "${keyItem}" immediately.</p>`;
             } else if (keyInteraction === 'Returning') {
                 recommendation += `<p class="p-3 mt-4 text-sm bg-red-50 border border-red-200 rounded-md">
-                    <strong>💡 Recommendation:</strong> There is a high return rate for **${keyItem}** among the **${targetAgeGroup}** demographic. Investigate if there is a sizing issue (for apparel) or a quality batch issue specifically affecting **${keyItem}**.
+                    <strong>💡 Recommendation:</strong> There is a high return rate for ${keyItem} among the ${targetAgeGroup} demographic. Investigate if there is a quality batch issue specifically affecting ${keyItem}.
                 </p>`;
             }
 
@@ -1014,11 +1043,39 @@
 				addInteractionField();
 			}
 		}	
+
+		// ---- DATA AND METRICS CALCULATOR ----
+		function calculateDistance(lat1, lon1, lat2, lon2) {
+            const R = 6371000; // Earth radius in meters
+            const dLat = (lat2 - lat1) * Math.PI / 180;
+            const dLon = (lon2 - lon1) * Math.PI / 180;
+            const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                Math.sin(dLon / 2) * Math.sin(dLon / 2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+            return R * c; // Distance in meters
+        }
+		function getClusteredLocationCount(activities, threshold = 10) {
+            if (!activities || activities.length === 0) return 0;
+            const clusters = [];
+            activities.forEach(activity => {
+                // Check if this point is within 10m of any group we already counted
+                const isNear = clusters.some(c => calculateDistance(activity.lat, activity.lon, c.lat, c.lon) <= 10);
+                if (!isNear) {
+                    clusters.push({ lat: activity.lat, lon: activity.lon });
+                }
+            });
+
+            return clusters.length;
+        }
 		
         // NEW FUNCTION: Handles the actual display update from the local buffer
         function updateDashboardDisplay(data) {
             document.getElementById('totalConsumers').textContent = data.dashboardMetrics.totalConsumers;
-            document.getElementById('activeLocations').textContent = data.dashboardMetrics.activeLocations;
+			// 2. CALCULATE 10m CLUSTERED LOCATIONS LOCALLY
+            // We use data.activity (the raw list of points) to recalculate the count
+            const clusteredCount = getClusteredLocationCount(data.activity, 10);
+            document.getElementById('activeLocations').textContent = clusteredCount;
             document.getElementById('conversionRate').textContent = data.dashboardMetrics.conversionRate;
 
             updateHourlyChart(data.activity);
@@ -1028,25 +1085,40 @@
             updateTargetDemographics(data.targetKeyDemographics);			
         }
 
-// ---- DATA AND METRICS CALCULATOR ----
-        
+		// ---- DATA AND METRICS CALCULATOR ----
+		
         // NEW FUNCTION: Calculates all metrics, demographics, and recommendations client-side
         // This ensures the dashboard reflects ONLY the data present in the provided activity array.
         function calculateClientSideStats(activityData) {
-            let totalConsumers = 0;
-            const locations = new Set();
-            const ageCounts = {};
+            let totalConsumers = 0;       
             let totalInteractions = 0;
             let purchaseCount = 0;
-            let interactionCounts = {};
-            let categoryCounts = {};
-			let itemNameCounts = {};
+			const ageCounts = {};
+            const interactionCounts = {};
+            const categoryCounts = {};
+			const itemNameCounts = {};
+
+			const stores = []; // Array to hold unique store centers [lat, lon]
+			const DISTANCE_THRESHOLD = 10; // 10 meters
 
             // Pass 1: Gather raw numbers for metrics and demographics
             activityData.forEach(activity => {
                 totalConsumers += activity.count;
-                locations.add(`${activity.lat},${activity.lon}`);
 
+				// Check if this point belongs to an existing store
+                let belongsToExistingStore = false;
+                for (let store of stores) {
+                    if (calculateDistance(activity.lat, activity.lon, store.lat, store.lon) <= 10) {
+                        belongsToExistingStore = true;
+                        break;
+                    }
+                }
+
+                // If it's further than 10m from all known stores, it's a new location
+                if (!belongsToExistingStore) {
+                    stores.push({ lat: activity.lat, lon: activity.lon });
+                }
+				
                 // Demographics
                 const ageGroup = activity.age; // Assuming 'age' is a string like '25-34'
                 ageCounts[ageGroup] = (ageCounts[ageGroup] || 0) + activity.count;
@@ -1065,9 +1137,9 @@
             });
 
             // Calculate Metrics
-            const activeLocations = locations.size;
-            const conversionRate = totalInteractions > 0 
-                ? ((purchaseCount / totalInteractions) * 100).toFixed(1) + '%'
+            const activeLocations = stores.length;
+            const conversionRate =totalConsumers > 0 
+                ? ((purchaseCount / totalConsumers) * 100).toFixed(1) + '%'
                 : '0%';
             
             // Calculate Demographics
@@ -1124,7 +1196,7 @@
         // ---- DATA AND API HANDLERS ----
         async function fetchDashboardData() {
             try {
-                const response = await fetchWithAuth('${API_URL}/api/dashboard');
+                const response = await fetchWithAuth('/api/dashboard');
                 let data = await response.json();
                 
 				allActivityData = data.activity; // Store the master copy here
@@ -1175,15 +1247,16 @@
             const newActivity = {
 			    date: document.getElementById('activityDate').value,
                 time: document.getElementById('activityTime').value,
-                lat: lat,
-                lon: lon,
+                lat: parseFloat(document.getElementById('activityLat').value), // FIX: convert to number
+                lon: parseFloat(document.getElementById('activityLon').value), // FIX: convert to number
                 count: parseInt(document.getElementById('activityCount').value),
-                age: document.getElementById('activityAge').value,           
+				gender: document.getElementById('activityGender').value,
+                age: document.getElementById('activityAge').value,  				
                 interactions: interactions 
             };
 
             try {
-                const response = await fetchWithAuth('${API_URL}/api/activity', {
+                const response = await fetchWithAuth('/api/activity', {
                     method: 'POST',
                     body: JSON.stringify(newActivity)
                 });
@@ -1208,22 +1281,19 @@
         }
         // ---- INITIALIZATION AND EVENT LISTENERS ----
         document.addEventListener('DOMContentLoaded', function() {
-		    updateBackground(); // Show first image immediately
-			setInterval(updateBackground, 8000); // Change every 8 seconds
-			
             initCharts();
             initOverviewMap();
 
             const token = localStorage.getItem('token');
             if (token) {
                 document.getElementById('authModal').classList.add('hidden');
-                document.getElementById('dashboard').classList.remove('hidden');
+                document.getElementById('mainDashboard').classList.remove('hidden');
                 map.invalidateSize();
                 fetchDashboardData();
             } else {
                 document.getElementById('authModal').classList.remove('hidden');
             }
-
+	
             document.getElementById('authForm').addEventListener('submit', async function(e) {
                 e.preventDefault();
                 const username = document.getElementById('username').value;
@@ -1231,7 +1301,7 @@
                 const authMessage = document.getElementById('authMessage');
 
                 try {
-                    const response = await fetch('${API_URL}/api/login', {
+                    const response = await fetch('/api/login', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ username, password })
@@ -1241,7 +1311,7 @@
                         localStorage.setItem('token', result.token);
                         localStorage.setItem('userId', result.userId);
                         document.getElementById('authModal').classList.add('hidden');
-                        document.getElementById('dashboard').classList.remove('hidden');
+                        document.getElementById('mainDashboard').classList.remove('hidden');
                         setTimeout(() => {
 						    map.invalidateSize();
 							console.log("Map size recalculated");
@@ -1263,7 +1333,7 @@
                 const authMessage = document.getElementById('authMessage');
 
                 try {
-                    const response = await fetch('${API_URL}/api/register', {
+                    const response = await fetch('/api/register', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ username, password })
@@ -1280,7 +1350,7 @@
             document.getElementById('logoutBtn').addEventListener('click', function() {
                 localStorage.removeItem('token');
                 localStorage.removeItem('userId');
-                document.getElementById('dashboard').classList.add('hidden');
+                document.getElementById('mainDashboard').classList.add('hidden');
                 document.getElementById('authModal').classList.remove('hidden');
                 document.getElementById('peakHours').textContent = '';
             });
@@ -1319,7 +1389,7 @@
                 const endDate = document.getElementById('filterEndDate').value;
 
                 // 2. Build the URL with query parameters if filters are set
-                let url = '${API_URL}/api/activity/csv';
+                let url = '/api/activity/csv';
                 const params = new URLSearchParams();
                 if (startDate) params.append('startDate', startDate);
                 if (endDate) params.append('endDate', endDate);
@@ -1358,7 +1428,61 @@
                 showMessage("Export failed. Please check if the server is running.", true);
             }
         });
-    });
+		let deferredPrompt;
+        const installBanner = document.getElementById('install-banner');
+        const installBtn = document.getElementById('install-button');
+        const closeBtn = document.getElementById('close-banner');
+		
+		window.addEventListener('beforeinstallprompt', (e) => {
+            // Prevent Chrome 67 and earlier from automatically showing the prompt
+            e.preventDefault();
+            // Stash the event so it can be triggered later.
+            deferredPrompt = e;
+            // Show the custom install banner
+            installBanner.classList.remove('translate-y-full');
+        });
+		installBtn.addEventListener('click', async () => {
+            if (deferredPrompt) {
+                // Show the native install prompt
+                deferredPrompt.prompt();
+                // Wait for the user to respond to the prompt
+                const { outcome } = await deferredPrompt.userChoice;
+                console.log(`User response to install prompt: ${outcome}`);
+                // We've used the prompt, and can't use it again
+                deferredPrompt = null;
+                // Hide our banner
+                installBanner.classList.remove('translate-y-full');
+            }
+        });
+		
+		closeBtn.addEventListener('click', () => {
+            installBanner.classList.add('translate-y-full');
+        });
+					
+		const openAbout = document.getElementById('openAbout');
+        const closeAbout = document.getElementById('closeAbout');
+        const closeAboutBtn = document.getElementById('closeAboutBtn');
+        const aboutModal = document.getElementById('aboutModal');
+
+        const toggleAbout = () => aboutModal.classList.toggle('hidden');
+
+        openAbout.addEventListener('click', toggleAbout);
+        closeAbout.addEventListener('click', toggleAbout);
+        closeAboutBtn.addEventListener('click', toggleAbout);
+
+		// Close if user clicks the dark background outside the box
+		window.addEventListener('click', (e) => {
+            if (e.target === aboutModal) toggleAbout();
+		});
+			
+		if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js')
+                    .then(reg => console.log('Service Worker registered!'))
+                    .catch(err => console.error('Registration failed:', err));
+            });
+        }
+    });	
     </script>
 </body>
 </html>
