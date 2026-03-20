@@ -1,4 +1,4 @@
-require('dotenv').config();
+ require('dotenv').config();
 
 const express = require('express');
 const bodyParser = require('body-parser');
@@ -7,6 +7,11 @@ const path = require('path');
 const mongoose = require('mongoose');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
+
+const multer = require('multer');
+const csv = require('csv-parser');
+const fs = require('fs');
+const upload = multer({ dest: 'uploads/' }); // This creates a temporary folder for uploads
 
 const app = express();
 const PORT = process.env.PORT || 10000;
@@ -335,6 +340,58 @@ app.post('/api/demographics', authenticateToken, async (req, res) => {
         res.status(500).json({ message: "Internal server error" });
     }
 });
+app.post('/api/activity/import-csv', authenticateToken, upload.single('csvFile'), async (req, res) => {
+    const results = [];
+    const userId = req.user.userId;
+
+    if (!req.file) return res.status(400).send('No file uploaded.');
+
+    fs.createReadStream(req.file.path)
+        .pipe(csv())
+        .on('data', (data) => results.push(data))
+        .on('end', async () => {
+            try {
+                if (results.length === 0) {
+                    return res.status(400).json({ error: "CSV file is empty or headers are missing." });
+                }
+
+                const activities = results.map((row, index) => {
+                    // VALIDATION: Check if essential columns exist
+                    const lat = parseFloat(row.Latitude || row.lat);
+                    const lon = parseFloat(row.Longitude || row.lon);
+                    
+                    if (isNaN(lat) || isNaN(lon)) {
+                        throw new Error(`Row ${index + 1}: Invalid Latitude or Longitude.`);
+                    }
+
+                    return {
+                        date: row.Date || row.date || new Date().toISOString().split('T')[0],
+                        time: row.Time || row.time || "12:00",
+                        lat: lat,
+                        lon: lon,
+                        count: parseInt(row['Consumer Count'] || row.count) || 1,
+                        gender: row.Gender || row.gender || 'N/A',
+                        age: row['Age Group'] || row.age || 'N/A',
+                        interactions: [{
+                            type: row['Behavior Type'] || row.interaction_type || 'Browsing',
+                            item: row['Item Name'] || row.interaction_item || 'General',
+                            category: row['Item Category'] || row.interaction_category || 'General'
+                        }],
+                        userId: userId
+                    };
+                });
+
+                await Activity.insertMany(activities);
+                fs.unlinkSync(req.file.path); 
+                res.json({ message: `${activities.length} records imported successfully!` });
+            } catch (err) {
+                // Delete file even if it fails
+                if (fs.existsSync(req.file.path)) fs.unlinkSync(req.file.path);
+                console.error("Import Error:", err.message);
+                res.status(400).json({ error: `Import failed: ${err.message}` });
+            }
+        });
+});
 // PROTECTED ENDPOINT: Export flattened activity data as CSV
 // Update this endpoint in server.js
 app.get('/api/activity/csv', authenticateToken, async (req, res) => {
@@ -397,6 +454,11 @@ app.get('/sw.js', (req, res) => {
 });
 
 // The catch-all route for the frontend (Express 5 compatible)
+<<<<<<< HEAD
+=======
+// This ensures that any deep links (like /dashboard) return index.html
+// The catch-all route for the frontend (Express 5 compatible)
+>>>>>>> bc788ddec447155e64962f00603651155f2c298f
 app.get(/^(?!\/api).+/, (req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));
 });
