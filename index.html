@@ -1239,7 +1239,7 @@
 
                 const result = await response.json();
                 if (response.ok) {
-                    alert(result.message) || "Import Successful!");
+                    alert(result.message || "Import Successful!");
                     location.reload(); // This reloads your map with the new data
                 } else {
                     alert('Import failed: ' + (result.error || result.message));
