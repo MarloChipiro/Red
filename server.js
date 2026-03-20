@@ -351,25 +351,32 @@ app.post('/api/upload-csv', authenticateToken, upload.single('csvFile'), (req, r
         .on('data', (data) => results.push(data))
         .on('end', async () => {
             try {
-                const activities = results.map(row => ({
-                    date: row.Date || new Date().toISOString().split('T')[0],
-                    time: row.Time || "00:00",
-                    lat: parseFloat(row.Latitude),
-                    lon: parseFloat(row.Longitude),
-                    count: 1, // Using your fixed value requirement
-                    gender: row.Gender || 'Other',
-                    age: row['Age Group'] || '21-25', 
-                    userId: req.user.userId,
-                    interactions: [] 
-                })).filter(a => !isNaN(a.lat) && !isNaN(a.lon));
+                const activities = results.map(row => {
+                    // Using curly braces requires an explicit 'return' statement
+                    return {
+                        date: row.Date || new Date().toISOString().split('T')[0],
+                        time: row.Time || "00:00",
+                        lat: parseFloat(row.Latitude),
+                        lon: parseFloat(row.Longitude),
+                        count: 1, 
+                        gender: row.Gender || row.gender || 'N/A',
+                        age: row['Age Group'] || '21-25',
+                        interactions: [{
+                            type: row['Behavior Type'] || row.interaction_type || 'Browsing',
+                            item: row['Item Name'] || row.interaction_item || 'General',
+                            category: row['Item Category'] || row.interaction_category || 'General'
+                        }],
+                        userId: req.user.userId
+                    };
+                }).filter(a => !isNaN(a.lat) && !isNaN(a.lon));
 
                 if (activities.length === 0) throw new Error("No valid coordinates found in CSV.");
 
-                // Use your existing Activity model
+                // Insert into MongoDB
                 await mongoose.model('Activity').insertMany(activities);
-                
-                // Remove file from /uploads after processing
-                fs.unlinkSync(filePath); 
+        
+                // Clean up the temporary file
+                if (fs.existsSync(filePath)) fs.unlinkSync(filePath); 
 
                 res.status(200).json({ message: `Success! ${activities.length} records are now on your map.` });
             } catch (error) {
