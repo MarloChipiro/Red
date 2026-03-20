@@ -340,55 +340,41 @@ app.post('/api/demographics', authenticateToken, async (req, res) => {
         res.status(500).json({ message: "Internal server error" });
     }
 });
-app.post('/api/activity/import-csv', authenticateToken, upload.single('csvFile'), async (req, res) => {
+app.post('/api/upload-csv', authenticateToken, upload.single('csvFile'), (req, res) => {
+    if (!req.file) return res.status(400).json({ message: 'No file uploaded.' });
+
     const results = [];
-    const userId = req.user.userId;
+    const filePath = path.join(__dirname, req.file.path);
 
-    if (!req.file) return res.status(400).send('No file uploaded.');
-
-    fs.createReadStream(req.file.path)
+    fs.createReadStream(filePath)
         .pipe(csv())
         .on('data', (data) => results.push(data))
         .on('end', async () => {
             try {
-                if (results.length === 0) {
-                    return res.status(400).json({ error: "CSV file is empty or headers are missing." });
-                }
+                const activities = results.map(row => ({
+                    date: row.Date || new Date().toISOString().split('T')[0],
+                    time: row.Time || "00:00",
+                    lat: parseFloat(row.Latitude),
+                    lon: parseFloat(row.Longitude),
+                    count: 1, // Using your fixed value requirement
+                    gender: row.Gender || 'Other',
+                    age: row['Age Group'] || '21-25', 
+                    userId: req.user.userId,
+                    interactions: [] 
+                })).filter(a => !isNaN(a.lat) && !isNaN(a.lon));
 
-                const activities = results.map((row, index) => {
-                    // VALIDATION: Check if essential columns exist
-                    const lat = parseFloat(row.Latitude || row.lat);
-                    const lon = parseFloat(row.Longitude || row.lon);
-                    
-                    if (isNaN(lat) || isNaN(lon)) {
-                        throw new Error(`Row ${index + 1}: Invalid Latitude or Longitude.`);
-                    }
+                if (activities.length === 0) throw new Error("No valid coordinates found in CSV.");
 
-                    return {
-                        date: row.Date || row.date || new Date().toISOString().split('T')[0],
-                        time: row.Time || row.time || "12:00",
-                        lat: lat,
-                        lon: lon,
-                        count: parseInt(row['Consumer Count'] || row.count) || 1,
-                        gender: row.Gender || row.gender || 'N/A',
-                        age: row['Age Group'] || row.age || 'N/A',
-                        interactions: [{
-                            type: row['Behavior Type'] || row.interaction_type || 'Browsing',
-                            item: row['Item Name'] || row.interaction_item || 'General',
-                            category: row['Item Category'] || row.interaction_category || 'General'
-                        }],
-                        userId: userId
-                    };
-                });
+                // Use your existing Activity model
+                await mongoose.model('Activity').insertMany(activities);
+                
+                // Remove file from /uploads after processing
+                fs.unlinkSync(filePath); 
 
-                await Activity.insertMany(activities);
-                fs.unlinkSync(req.file.path); 
-                res.json({ message: `${activities.length} records imported successfully!` });
-            } catch (err) {
-                // Delete file even if it fails
-                if (fs.existsSync(req.file.path)) fs.unlinkSync(req.file.path);
-                console.error("Import Error:", err.message);
-                res.status(400).json({ error: `Import failed: ${err.message}` });
+                res.status(200).json({ message: `Success! ${activities.length} records are now on your map.` });
+            } catch (error) {
+                if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
+                res.status(500).json({ message: 'Import failed', error: error.message });
             }
         });
 });
@@ -454,11 +440,7 @@ app.get('/sw.js', (req, res) => {
 });
 
 // The catch-all route for the frontend (Express 5 compatible)
-<<<<<<< HEAD
-=======
 // This ensures that any deep links (like /dashboard) return index.html
-// The catch-all route for the frontend (Express 5 compatible)
->>>>>>> bc788ddec447155e64962f00603651155f2c298f
 app.get(/^(?!\/api).+/, (req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));
 });
