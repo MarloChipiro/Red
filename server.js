@@ -50,8 +50,6 @@ const User = mongoose.model('User', userSchema);
     lat: Number,       // Location Latitude
     lon: Number,       // Location Longitude
     count: Number,     // Consumer Count
-	gender: String,
-    age: String,       // Age Group
     // New nested structure for multi-item interactions
     interactions: [{
         type: { type: String, enum: ['Browsing', 'Purchasing', 'Returning'], required: true },
@@ -61,14 +59,6 @@ const User = mongoose.model('User', userSchema);
     userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' } // Link data to a user
 });
 const Activity = mongoose.model('Activity', activitySchema);
-
-const demographicsSchema = new mongoose.Schema({
-    ageGroup: String,
-    percentage: Number,
-    userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }
-});
-const Demographics = mongoose.model('Demographics', demographicsSchema);
-
 const dashboardMetricsSchema = new mongoose.Schema({
     totalConsumers: Number,
     activeLocations: Number,
@@ -136,8 +126,7 @@ function convertToCsv(data) {
 
     // Define headers for the flattened data structure
     const headers = [
-        'Activity ID', 'Date','Time', 'Latitude', 'Longitude', 'Consumer Count','Gender', 'Age Group', 
-        'Behavior Type', 'Item Name', 'Item Category'
+        'Activity ID', 'Date','Time', 'Latitude', 'Longitude', 'Consumer Count', 'Behavior Type', 'Item Name', 'Item Category'
     ];
     const csvRows = [];
     // Quoting headers for robustness
@@ -153,8 +142,6 @@ function convertToCsv(data) {
             row.lat || 'N/A',
             row.lon || 'N/A',
             row.count || 'N/A',
-			row.gender || 'N/A',
-            row.age || 'N/A',
             row.interaction_type || 'N/A',   // Use the flattened field names
             row.interaction_item || 'N/A',
             row.interaction_category || 'N/A'
@@ -180,7 +167,6 @@ app.get('/api/dashboard', authenticateToken, async (req, res) => {
         }
 
         // --- CALCULATION SETUP ---
-        const ageGroupCounts = {};
         const interactionTypeCounts = {};
         const itemCategoryCounts = {};
 		const itemNameCounts = {};
@@ -191,13 +177,7 @@ app.get('/api/dashboard', authenticateToken, async (req, res) => {
         activityData.forEach(activity => {
             // Count total consumers
             totalConsumerCount += activity.count; 
-            
-            // Count age group occurrences (for demographics chart and target analysis)
-            const ageGroup = activity.age;
-            if (ageGroup) {
-                ageGroupCounts[ageGroup] = (ageGroupCounts[ageGroup] || 0) + 1;
-            }
-            
+
             // Count purchases, interaction types, and categories (for conversion rate & target analysis)
             activity.interactions.forEach(interaction => {
                 if (interaction.type === 'Purchasing') {
@@ -233,13 +213,6 @@ app.get('/api/dashboard', authenticateToken, async (req, res) => {
 
         // Update metricsData object with the new count
         metricsData.activeLocations = activeLocationsCount;
-		
-        // --- DYNAMIC DEMOGRAPHICS (for chart) ---
-        const dynamicDemographics = Object.keys(ageGroupCounts).map(age => ({
-            age_group: age, 
-            count: ageGroupCounts[age]
-        }));
-
 
         // --- DYNAMIC CONVERSION RATE (for KPI) ---
         let conversionRate = "0.0%";
@@ -270,7 +243,6 @@ app.get('/api/dashboard', authenticateToken, async (req, res) => {
         };
 
         const targetKeyDemographics = {
-            targetAgeGroup: findMaxKey(ageGroupCounts),
             keyInteraction: findMaxKey(interactionTypeCounts),
             keyCategory: findMaxKey(itemCategoryCounts),
 			keyItem: findMaxKey(itemNameCounts)
@@ -278,9 +250,8 @@ app.get('/api/dashboard', authenticateToken, async (req, res) => {
 		
 		let topItem = targetKeyDemographics.keyItem;
         let topCategory = targetKeyDemographics.keyCategory;
-        let topAgeGroup = targetKeyDemographics.targetAgeGroup;
 
-        const dynamicRecommendation = `Recommendation: **${topItem}** is a top seller for **${topAgeGroup}**! ` +
+        const dynamicRecommendation = `Recommendation: **${topItem}** is a top seller` +
             `Ensure high stock levels and consider placing high-margin items from the **${topCategory}** ` +
             `section right next to the **${topItem}** shelf to drive impulse buys.`;
 
@@ -290,7 +261,6 @@ app.get('/api/dashboard', authenticateToken, async (req, res) => {
 		
         res.json({
             activity: activityData,
-            demographics: dynamicDemographics, 
             dashboardMetrics: metricsData,
             // Send the analysis results to the front-end
             targetKeyDemographics: targetKeyDemographics 
@@ -310,7 +280,7 @@ app.post('/api/activity', authenticateToken, async (req, res) => {
 
         await DashboardMetrics.findOneAndUpdate(
             { userId: req.user.userId },
-            { $inc: { totalConsumers: newActivity.count, activeLocations: Math.floor(Math.random() * 3) + 1 } },
+            { $inc: { totalConsumers: newActivity.count} },
             { upsert: true, new: true }
         );
 
@@ -322,24 +292,6 @@ app.post('/api/activity', authenticateToken, async (req, res) => {
     }
 });
 
-// PROTECTED ENDPOINT: Add demographics data
-app.post('/api/demographics', authenticateToken, async (req, res) => {
-    try {
-        const newDemographics = req.body.map(item => ({ ...item, userId: req.user.userId }));
-        if (Array.isArray(newDemographics)) {
-            await Demographics.deleteMany({ userId: req.user.userId });
-            await Demographics.insertMany(newDemographics);
-
-            console.log("Demographics data updated:", newDemographics);
-            res.status(201).json({ message: "Demographics data updated successfully", data: newDemographics });
-        } else {
-            res.status(400).json({ message: "Invalid demographics data provided. Expected an array." });
-        }
-    } catch (error) {
-        console.error('Failed to update demographics:', error);
-        res.status(500).json({ message: "Internal server error" });
-    }
-});
 app.post('/api/upload-csv', authenticateToken, upload.single('csvFile'), (req, res) => {
     if (!req.file) return res.status(400).json({ message: 'No file uploaded.' });
 
@@ -359,8 +311,6 @@ app.post('/api/upload-csv', authenticateToken, upload.single('csvFile'), (req, r
                         lat: parseFloat(row.Latitude),
                         lon: parseFloat(row.Longitude),
                         count: 1, 
-                        gender: row.Gender || row.gender || 'N/A',
-                        age: row['Age Group'] || '21-25',
                         interactions: [{
                             type: row['Behavior Type'] || row.interaction_type || 'Browsing',
                             item: row['Item Name'] || row.interaction_item || 'General',
@@ -415,12 +365,9 @@ app.get('/api/activity/csv', authenticateToken, async (req, res) => {
                     lat: activity.lat,
                     lon: activity.lon,
                     count: activity.count,
-					gender: activity.gender || 'N/A',
-                    age: activity.age,
                     interaction_type: interaction.type,
                     interaction_item: interaction.item,
-                    interaction_category: interaction.category,
-                    sub_category: interaction.subCategory
+                    interaction_category: interaction.category
                 });
             });
         });
