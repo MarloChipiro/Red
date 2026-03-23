@@ -650,8 +650,8 @@
 				if (clickMarker) map.removeLayer(clickMarker);
             
                 clickMarker = L.marker(e.latlng).addTo(map);
-                document.getElementById('lat').value = e.latlng.lat.toFixed(6);
-                document.getElementById('lon').value = e.latlng.lng.toFixed(6);
+                document.getElementById('activityLat').value = e.latlng.lat.toFixed(6);
+                document.getElementById('activityLon').value = e.latlng.lng.toFixed(6);
             
 			    map.flyTo(e.latlng, 16); 
 			
