@@ -262,15 +262,6 @@
                 </div>
             </div>
 
-            <!-- Demographics Chart -->
-            <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md border border-gray-200 dark:border-gray-700">
-                <h2 class="text-xl font-bold mb-4">Demographics</h2>
-                <div class="chart-container">
-                    <canvas id="demographicsChart"></canvas>
-                </div>
-            </div>
-        </section>
-
         <!-- Recommendations and Overview Map Section -->
         <section class="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-8 items-start">
             <!-- Recommendations Card -->
@@ -282,12 +273,6 @@
                     <div class="bg-gray-100 dark:bg-gray-700 p-4 rounded-lg">
                         <h3 class="font-semibold text-lg text-primary">Optimize Peak Hours</h3>
                         <p class="text-sm mt-1">Focus on staffing and promotions between <span id="peakHours" class="font-bold text-primary-dark dark:text-yellow-400"></span> to capitalize on high traffic.</p>
-                    </div>
-                    <div class="bg-gray-100 dark:bg-gray-700 p-4 rounded-lg">
-                        <h3 class="font-semibold text-lg text-primary">Target Key Demographics</h3>
-                        <div id="targetDemographicsOutput" class="mt-2 text-sm">
-                            <p class="text-gray-500 italic">Loading analysis...</p>
-                        </div>
                     </div>
                 </div>
             </div>
@@ -359,32 +344,7 @@
                     <label for="activityCount" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Consumer Count</label>
                     <input type="number" id="activityCount" name="activityCount" value="1" readonly 
                         class="mt-1 block w-full rounded-md border-gray-300 shadow-sm bg-gray-100 dark:bg-gray-600 cursor-not-allowed focus:ring-0">
-                </div>
-				<div>
-                    <label for="activityGender" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Gender</label>
-                    <select id="activityGender" name="activityGender" required 
-                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-dark focus:ring focus:ring-primary-dark focus:ring-opacity-50 dark:bg-gray-700 dark:border-gray-600 dark:text-white">
-                        <option value="" disabled selected>Select gender...</option>
-                        <option value="F">Female (F)</option>
-                        <option value="M">Male (M)</option>
-                    </select>
-                </div>
-                <div>
-                    <label for="activityAge" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Age Group</label>
-                    <select id="activityAge" name="activityAge" required 
-                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-dark focus:ring focus:ring-primary-dark focus:ring-opacity-50 dark:bg-gray-700 dark:border-gray-600 dark:text-white">
-                        <option value="" disabled selected>Select age range...</option>
-                        <option value="15-20">15-20</option>
-                        <option value="21-25">21-25</option>
-                        <option value="26-30">26-30</option>
-                        <option value="31-35">31-35</option>
-                        <option value="36-40">36-40</option>
-                        <option value="41-45">41-45</option>
-                        <option value="46-50">46-50</option>
-                        <option value="51-55">51-55</option>
-                        <option value="56+">56+</option>
-                    </select>
-                </div>                                  
+                </div>                               
                 <button type="submit" class="w-full py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-dark">Add Data</button>
             </form>
         </div>
@@ -439,7 +399,7 @@
 				
         // Store charts, map, and heatmap layers instance globally for updates
         let allActivityData = []; // <--- Master copy for filtering
-		let hourlyActivityChart, demographicsChart, map;
+		let hourlyActivityChart, map;
         let heatLayers = {};
         let clusterLayers = {};
         let currentMapMode = 'heatmap'; // 'heatmap' or 'cluster'
@@ -448,9 +408,8 @@
     // CRITICAL NEW GLOBAL VARIABLE: Stores the data currently displayed (cleared on Refresh)
         let localActivityData = {
             activity: [],
-            demographics: [],
             dashboardMetrics: { totalConsumers: 0, activeLocations: 0, conversionRate: '0%' },
-            targetKeyDemographics: { targetAgeGroup: 'N/A', keyInteraction: 'N/A', keyCategory: 'N/A' }
+            targetKeyDemographics: {keyInteraction: 'N/A', keyCategory: 'N/A', keyItem: 'N/A' }
         };
 
 		const API_URL ='';
@@ -659,25 +618,6 @@
                     scales: { y: { beginAtZero: true } }
                 }
             });
-
-            const demoCtx = document.getElementById('demographicsChart').getContext('2d');
-            demographicsChart = new Chart(demoCtx, {
-                type: 'pie',
-                data: {
-                    labels: [],
-                    datasets: [{
-                        label: 'Demographics',
-                        data: [],
-                        backgroundColor: [
-                            '#5D5CDE', '#34D399', '#FBBF24', '#F87171', '#60A5FA', '#8B5CF6'
-                        ]
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false
-                }
-            });
         }
 
         function updateHourlyChart(data) {
@@ -695,20 +635,7 @@
             hourlyActivityChart.data.datasets[0].data = counts;
             hourlyActivityChart.update();
         }        
-
-        function updateDemographicsChart(data) {
-            // CRITICAL FIX: Map to the new dynamic field names (age_group and count)
-            const labels = data.map(d => d.age_group);
-            const counts = data.map(d => d.count);
-    
-            // Sort data for consistent chart display (optional but recommended)
-            // Note: Pie charts use raw counts, and Chart.js calculates the percentages automatically.
-    
-            demographicsChart.data.labels = labels;
-            demographicsChart.data.datasets[0].data = counts; 
-            demographicsChart.update();
-        }
-
+		
         // ---- MAP FUNCTIONS ----
         function initOverviewMap() {
             if (map) { map.remove(); }
@@ -948,37 +875,37 @@
                 document.getElementById('peakHours').textContent = 'N/A';
             }
         }
-        // Inside copy7-auth.html, add this new function:
 
         function updateTargetDemographics(demographics) {
             const outputDiv = document.getElementById('targetDemographicsOutput');
             // Deconstruct the new keyItem field
-            const { targetAgeGroup, keyInteraction, keyCategory, keyItem } = demographics;
+            const { keyInteraction, keyCategory, keyItem } = demographics;
 
-            if (targetAgeGroup === 'N/A' || keyItem === 'N/A') {
+			if (!keyItem || keyItem === 'N/A') {
                 outputDiv.innerHTML = '<p class="text-sm text-gray-500">No activity data available to generate recommendations.</p>';
                 return;
             }
 
-            let recommendation = `<p class="mb-2 text-base text-gray-800">Your Primary Target Demographic is the ${targetAgeGroup} age group.</p>`;
-    
-            // Highlight the specific item instead of the category
-            recommendation += `<p class="mb-2 text-sm text-gray-700">The most popular specific product is ${keyItem}, often associated with ${keyInteraction} behavior.</p>`;
+           let recommendation = `<p class="mb-2 text-base text-gray-800">Your Top Performing Product is <strong>${keyItem}</strong>.</p>`;
+           recommendation += `<p class="mb-2 text-sm text-gray-700">This item is currently seeing high <strong>${keyInteraction}</strong> activity within the ${keyCategory} category.</p>`;
 
             // Item-specific recommendations
             if (keyInteraction === 'Browsing') {
-                recommendation += `<p class="p-3 mt-4 text-sm bg-yellow-50 border border-yellow-200 rounded-md">
-                    <strong>💡 Recommendation:</strong> Many users in the ${targetAgeGroup} group are looking at ${keyItem} but not buying. Consider a "Bundle Deal" where purchasing ${keyItem} gives a discount on a related item in the ${keyCategory} category to seal the deal.
-                </p>`;
+                recommendation += `
+                    <div class="p-3 mt-4 text-sm bg-yellow-50 border border-yellow-200 rounded-md">
+                        <strong>💡 Strategy:</strong> High interest but low conversion. Consider a "Bundle Deal" where purchasing ${keyItem} gives a discount on a related item in the ${keyCategory} category.
+                    </div>`;
             } else if (keyInteraction === 'Purchasing') {
-                recommendation += `<p class="p-3 mt-4 text-sm bg-green-50 border border-green-200 rounded-md">
-                    <strong>💡 Recommendation:</strong> ${keyItem} is a top seller for ${targetAgeGroup}! Ensure high stock levels and consider placing high-margin items from the ${keyCategory} section right next to the ${keyItem} shelf to drive impulse buys.
-                </p>
-                <p class="text-xs text-gray-500 mt-2">Inventory Alert: Check stock for "${keyItem}" immediately.</p>`;
+                recommendation += `
+                    <div class="p-3 mt-4 text-sm bg-green-50 border border-green-200 rounded-md">
+                        <strong>💡 Strategy:</strong> ${keyItem} is a top seller! Ensure stock levels are maintained and place high-margin impulse items from the ${keyCategory} section nearby.
+                        <p class="text-xs text-gray-500 mt-2 italic">Action: Check inventory for "${keyItem}" immediately.</p>
+                    </div>`;
             } else if (keyInteraction === 'Returning') {
-                recommendation += `<p class="p-3 mt-4 text-sm bg-red-50 border border-red-200 rounded-md">
-                    <strong>💡 Recommendation:</strong> There is a high return rate for ${keyItem} among the ${targetAgeGroup} demographic. Investigate if there is a quality batch issue specifically affecting ${keyItem}.
-                </p>`;
+                recommendation += `
+                    <div class="p-3 mt-4 text-sm bg-red-50 border border-red-200 rounded-md">
+                        <strong>💡 Strategy:</strong> High return volume detected. Investigate potential quality issues with the current batch of ${keyItem} or update the ${keyCategory} product description.
+                    </div>`;
             }
 
             outputDiv.innerHTML = recommendation;
@@ -987,11 +914,10 @@
             // 1. Reset Metrics to 0/N/A
             document.getElementById('totalConsumers').textContent = '0';
             document.getElementById('activeLocations').textContent = '0';
-            document.getElementById('conversionRate').textContent = '0';
-    
-            // 2. Robustly Clear Charts by replacing the entire data object
+            document.getElementById('conversionRate').textContent = '0%';
+
+            // 2. Clear Hourly Chart
             if (hourlyActivityChart) {
-			                // Hourly Chart Reset
                 hourlyActivityChart.data = {
                     labels: [],
                     datasets: [{ 
@@ -1000,40 +926,27 @@
                         borderColor: '#5D5CDE', 
                         tension: 0.1 
                     }]				
-            };
-			            hourlyActivityChart.update();
-		        }
-
-            if (demographicsChart) {
-                // Demographics Chart Reset (Ensuring correct type and colors are maintained)
-                demographicsChart.data = {
-                    labels: [],
-                    datasets: [{ 
-                        label: 'Demographics', 
-                        data: [], 
-                        // Must retain colors or Chart.js might throw errors
-                        backgroundColor: [
-                            '#5D5CDE', '#34D399', '#FBBF24', '#F87171', '#60A5FA', '#8B5CF6'
-                        ]
-                    }]
                 };
-                demographicsChart.update();
+                hourlyActivityChart.update();		
             }
-			
+    
             // 3. Clear Recommendations
             document.getElementById('peakHours').textContent = 'N/A';
             document.getElementById('targetDemographicsOutput').innerHTML = '<p class="text-sm text-gray-500">Data cleared. Awaiting new activity entry!</p>';
 
             // 4. Clear Map layers and reset legend
-            clearMapLayers(); // This existing function removes layers and clears stored data
+            clearMapLayers(); 
             const legend = document.getElementById('mapLegend');
-            legend.innerHTML = '<h4 class="font-bold mb-2">Item Categories</h4><p class="text-xs text-gray-500 dark:text-gray-400">Dashboard data has been cleared.</p>';
-        
-            // CRITICAL STEP: When refreshing, reset the local data buffer to an empty set
-            localActivityData.activity = [];
-            localActivityData.demographics = [];
-            localActivityData.dashboardMetrics = { totalConsumers: 0, activeLocations: 0, conversionRate: '0%' };
-            localActivityData.targetKeyDemographics = { targetAgeGroup: 'N/A', keyInteraction: 'N/A', keyCategory: 'N/A' };
+            if (legend) {
+                legend.innerHTML = '<h4 class="font-bold mb-2">Item Categories</h4><p class="text-xs text-gray-500">Dashboard data has been cleared.</p>';
+            }
+
+            // 5. CRITICAL FIX: Reset the local data buffer using correct object syntax
+            localActivityData = {
+                activity: [],
+                dashboardMetrics: { totalConsumers: 0, activeLocations: 0, conversionRate: '0%' },
+                targetKeyDemographics: { keyInteraction: 'N/A', keyCategory: 'N/A', keyItem: 'N/A' }
+            };
         }		
 		
 		function resetDashboardState() {
@@ -1084,7 +997,6 @@
             document.getElementById('conversionRate').textContent = data.dashboardMetrics.conversionRate;
 
             updateHourlyChart(data.activity);
-            updateDemographicsChart(data.demographics);
             updateRecommendations(data.activity);
             updateMap(data.activity);
             updateTargetDemographics(data.targetKeyDemographics);			
@@ -1098,7 +1010,6 @@
             let totalConsumers = 0;       
             let totalInteractions = 0;
             let purchaseCount = 0;
-			const ageCounts = {};
             const interactionCounts = {};
             const categoryCounts = {};
 			const itemNameCounts = {};
@@ -1124,10 +1035,6 @@
                     stores.push({ lat: activity.lat, lon: activity.lon });
                 }
 				
-                // Demographics
-                const ageGroup = activity.age; // Assuming 'age' is a string like '25-34'
-                ageCounts[ageGroup] = (ageCounts[ageGroup] || 0) + activity.count;
-
                 // Interactions for Conversion Rate/Key Demographics
                 activity.interactions.forEach(interaction => {
                     totalInteractions++;
@@ -1147,21 +1054,13 @@
                 ? ((purchaseCount / totalConsumers) * 100).toFixed(1) + '%'
                 : '0%';
             
-            // Calculate Demographics
-            const demographics = Object.keys(ageCounts).map(age_group => ({
-                age_group,
-                count: ageCounts[age_group]
-            })).sort((a, b) => b.count - a.count);
-
             // Calculate Recommendations (Target Demographic/Interaction)
-            let targetAgeGroup = demographics.length > 0 ? demographics[0].age_group : 'N/A';
             let keyInteraction = Object.keys(interactionCounts).sort((a, b) => interactionCounts[b] - interactionCounts[a])[0] || 'N/A';
             let keyCategory = Object.keys(categoryCounts).sort((a, b) => categoryCounts[b] - categoryCounts[a])[0] || 'N/A';
             let keyItem = Object.keys(itemNameCounts).sort((a, b) => itemNameCounts[b] - itemNameCounts[a])[0] || 'N/A';
 			
             return {
                 dashboardMetrics: { totalConsumers, activeLocations, conversionRate },
-                demographics: demographics,
                 targetKeyDemographics: { targetAgeGroup, keyInteraction, keyCategory, keyItem }
             };
         }
@@ -1291,9 +1190,7 @@
                 time: document.getElementById('activityTime').value,
                 lat: parseFloat(document.getElementById('activityLat').value), // FIX: convert to number
                 lon: parseFloat(document.getElementById('activityLon').value), // FIX: convert to number
-                count: parseInt(document.getElementById('activityCount').value),
-				gender: document.getElementById('activityGender').value,
-                age: document.getElementById('activityAge').value,  				
+                count: parseInt(document.getElementById('activityCount').value),  				
                 interactions: interactions 
             };
 
