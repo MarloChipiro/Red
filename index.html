@@ -51,6 +51,7 @@
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
             overflow: hidden;
             border: 2px solid #e5e7eb;
+			z-index: 1;
         }
         .tab-content {
             display: none;
@@ -299,7 +300,7 @@
 
     <!-- Modals (Add Data Forms) -->
     <!-- Add Activity Data Modal -->
-    <div id="addActivityModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex items-center justify-center z-50 hidden">
+    <div id="addActivityModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex items-center justify-center z-999 hidden">
         <div class="relative p-8 bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-w-lg">
             <button class="absolute top-4 right-4 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300" onclick="closeActivityModal()">
                 <i class="fas fa-times"></i>
