@@ -1,8 +1,9 @@
 {
+  "id": "consumer-behavior-tracker-v1",
   "name": "Consumer Behavior Tracker",
   "short_name": "BehaviorTracker",
   "description": "Retail Analytics & Consumer Insights",
-  "start_url": "/index.html",
+  "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#5D5CDE",
